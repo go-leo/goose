@@ -1,6 +1,7 @@
 # gonic
 gonic 参考 Google API 设计方案，通过定义 proto 文件，快速生成Go语言的Restful服务路由。
 
+
 # 路由规则
 gonic 底层基于 [gin-gonic/gin](github.com/gin-gonic/gin) 管理http路由。详细定义规则见[gin-gonic/gin](github.com/gin-gonic/gin)
 
@@ -215,5 +216,7 @@ func (m *MockUserService) ListUser(ctx context.Context, req *ListUserRequest) (*
 	server.ListenAndServe()
 ```
 
-更多示例见 [example]https://github.com/go-leo/gonic/tree/example/user/server
+更多示例见 [example](https://github.com/go-leo/gonic/tree/example/user/server)
 
+# 子妹项目
+[github.com/go-leo/gorilla](https://github.com/go-leo/gorilla) 使用 gorilla/mux 管理路由。
