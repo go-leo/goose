@@ -1,0 +1,119 @@
+syntax = "proto3";
+package leo.gonic.example.user.v1;
+option go_package = "github.com/go-leo/gonic/example/user/v1;user";
+
+import "google/api/annotations.proto";
+
+service User {
+
+  // CreateUser 创建用户
+  // `POST /v1/user { "name": "Leo" }` | `CreateUserRequest(name: "Leo")`
+  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {
+    option (google.api.http) = {
+      post : "/v1/user"
+      body : "*"
+    };
+  }
+
+  // DeleteUser 删除用户
+    // `DELETE /v1/user/10000 | `DeleteUserRequest(id: 10000)`
+  rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse) {
+    option (google.api.http) = {
+      delete : "/v1/user/:id"
+    };
+  }
+
+  // ModifyUser 修改用户
+  // `PUT /v1/user/10000 { "name": "Leo" }` | `ModifyUserRequest(id: 10000, name: "Leo")`
+  rpc ModifyUser (ModifyUserRequest) returns (ModifyUserResponse) {
+    option (google.api.http) = {
+      put : "/v1/user/:id"
+      body : "*"
+    };
+  }
+
+  // UpdateUser 更新用户
+  // `PUT /v1/user/10000 { "id": "99999" ,"name": "Leo" }` | `UpdateUserRequest(id: 10000, UserItem(id: 9999, name: "Leo"))`
+  rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {
+    option (google.api.http) = {
+      patch : "/v1/user/:id"
+      body : "item"
+    };
+  }
+
+  // GetUser 获取用户
+  // `GET /v1/user/10000` | `GetUserRequest(id: 10000)`
+  rpc GetUser (GetUserRequest) returns (GetUserResponse) {
+    option (google.api.http) = {
+      get : "/v1/user/:id"
+    };
+  }
+
+  // ListUser 获取用户列表
+  // `GET /v1/users?page_num=1&page_size=10` | `ListUserRequest(page_num: 1, page_size: 10)`
+  rpc ListUser (ListUserRequest) returns (ListUserResponse) {
+    option (google.api.http) = {
+      get : "/v1/users"
+    };
+  }
+}
+
+message UserItem {
+  int64 id = 1;
+  string name = 2;
+}
+
+message CreateUserRequest {
+  string name = 1;
+}
+
+message CreateUserResponse {
+  UserItem item = 1;
+}
+
+message DeleteUserRequest {
+  int64 id = 1;
+}
+
+message DeleteUserResponse {
+  int64 id = 1;
+}
+
+message ModifyUserRequest {
+  int64 id = 1;
+  string name = 2;
+}
+
+message ModifyUserResponse {
+    int64 id = 1;
+  string name = 2;
+}
+
+message UpdateUserRequest {
+  int64 id = 1;
+  UserItem item = 2;
+}
+
+message UpdateUserResponse {
+  int64 id = 1;
+  UserItem item = 2;
+}
+
+message GetUserRequest {
+  int64 id = 1;
+}
+
+message GetUserResponse {
+  UserItem item = 1;
+}
+
+message ListUserRequest {
+  int64 page_num = 1;
+  int64 page_size = 2;
+}
+
+message ListUserResponse {
+  int64 page_num = 1;
+  int64 page_size = 2;
+  repeated UserItem list = 3;
+}

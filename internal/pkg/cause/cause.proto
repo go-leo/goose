@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-package cause;
-
-option go_package = "github.com/go-leo/gors/internal/pkg/cause;cause";
-
-message Error {
-  string msg = 1;
-}

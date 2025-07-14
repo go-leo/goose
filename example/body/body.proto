@@ -1,0 +1,71 @@
+syntax = "proto3";
+package leo.gonic.example.body.v1;
+option go_package = "github.com/go-leo/gonic/example/body/v1;body";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "google/api/httpbody.proto";
+import "google/rpc/http.proto";
+
+service Body {
+  rpc StarBody (BodyRequest) returns (Response) {
+    option (google.api.http) = {
+      post : "/v1/star/body"
+      body : "*"
+    };
+  }
+
+  rpc NamedBody (NamedBodyRequest) returns (Response) {
+    option (google.api.http) = {
+      post : "/v1/named/body"
+      body : "body"
+    };
+  }
+
+  rpc NonBody (google.protobuf.Empty) returns (Response) {
+    option (google.api.http) = {
+      get : "/v1/user_body"
+    };
+  }
+
+  rpc HttpBodyStarBody (google.api.HttpBody) returns (Response) {
+    option (google.api.http) = {
+      put : "/v1/http/body/star/body"
+      body : "*"
+    };
+  }
+
+  rpc HttpBodyNamedBody (HttpBodyRequest) returns (Response) {
+    option (google.api.http) = {
+      put : "/v1/http/body/named/body"
+      body : "body"
+    };
+  }
+
+  rpc HttpRequest (google.rpc.HttpRequest) returns (Response) {
+    option (google.api.http) = {
+      put : "/v1/http/request"
+      body : "*"
+    };
+  }
+
+}
+
+message BodyRequest {
+   string message = 1;
+}
+
+message NamedBodyRequest {
+  message Body {
+      string message = 1;
+  }
+  Body body = 1;
+}
+
+message HttpBodyRequest {
+  google.api.HttpBody body = 1;
+}
+
+message Response {
+  string message = 1;
+}

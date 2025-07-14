@@ -1,0 +1,153 @@
+syntax = "proto3";
+package leo.gonic.example.path.v1;
+option go_package = "github.com/go-leo/gonic/example/path/v1;path";
+
+import "google/api/httpbody.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/wrappers.proto";
+
+service BoolPath {
+  rpc BoolPath (BoolPathRequest) returns (google.api.HttpBody) {
+    option (google.api.http) = {
+      get : "/v1/:bool/:opt_bool/:wrap_bool"
+    };
+  }
+}
+
+message BoolPathRequest {
+  bool bool = 1;
+  optional bool opt_bool = 2;
+  google.protobuf.BoolValue wrap_bool = 3;
+}
+
+service Int32Path {
+  rpc Int32Path (Int32PathRequest) returns (google.api.HttpBody) {
+    option (google.api.http) = {
+      get : "/v1/:int32/:sint32/:sfixed32/:opt_int32/:opt_sint32/:opt_sfixed32/:wrap_int32"
+    };
+  }
+}
+
+message Int32PathRequest {
+  int32 int32 = 1;
+  sint32 sint32 = 2;
+  sfixed32 sfixed32 = 3;
+  optional int32 opt_int32 = 4;
+  optional sint32 opt_sint32 = 5;
+  optional sfixed32 opt_sfixed32 = 6;
+  google.protobuf.Int32Value wrap_int32 = 7;
+}
+
+
+
+service Int64Path {
+  rpc Int64Path (Int64PathRequest) returns (google.api.HttpBody) {
+    option (google.api.http) = {
+      get : "/v1/:int64/:sint64/:sfixed64/:opt_int64/:opt_sint64/:opt_sfixed64/:wrap_int64"
+    };
+  }
+}
+
+message Int64PathRequest {
+  int64 int64 = 1;
+  sint64 sint64 = 2;
+  sfixed64 sfixed64 = 3;
+  optional int64 opt_int64 = 4;
+  optional sint64 opt_sint64 = 5;
+  optional sfixed64 opt_sfixed64 = 6;
+  google.protobuf.Int64Value wrap_int64 = 7;
+}
+
+service Uint32Path {
+  rpc Uint32Path (Uint32PathRequest) returns (google.api.HttpBody) {
+    option (google.api.http) = {
+      get : "/v1/:uint32/:fixed32/:opt_uint32/:opt_fixed32/:wrap_uint32"
+    };
+  }
+}
+
+message Uint32PathRequest {
+  uint32 uint32 = 1;
+  fixed32 fixed32 = 2;
+  optional uint32 opt_uint32 = 3;
+  optional fixed32 opt_fixed32 = 4;
+  google.protobuf.UInt32Value wrap_uint32 = 5;
+}
+
+service Uint64Path {
+  rpc Uint64Path (Uint64PathRequest) returns (google.api.HttpBody) {
+    option (google.api.http) = {
+      get : "/v1/:uint64/:fixed64/:opt_uint64/:opt_fixed64/:wrap_uint64"
+    };
+  }
+}
+
+message Uint64PathRequest {
+  uint64 uint64 = 1;
+  fixed64 fixed64 = 2;
+  optional uint64 opt_uint64 = 3;
+  optional fixed64 opt_fixed64 = 4;
+  google.protobuf.UInt64Value wrap_uint64 = 5;
+}
+
+
+service FloatPath {
+  rpc FloatPath (FloatPathRequest) returns (google.api.HttpBody) {
+    option (google.api.http) = {
+      get : "/v1/:float/:opt_float/:wrap_float"
+    };
+  }
+}
+
+message FloatPathRequest {
+  float float = 1;
+  optional float opt_float = 2;
+  google.protobuf.FloatValue wrap_float = 3;
+}
+
+service DoublePath {
+  rpc DoublePath (DoublePathRequest) returns (google.api.HttpBody) {
+    option (google.api.http) = {
+      get : "/v1/:double/:opt_double/:wrap_double"
+    };
+  }
+}
+
+message DoublePathRequest {
+  double double = 1;
+  optional double  opt_double = 2;
+  google.protobuf.DoubleValue wrap_double = 3;
+}
+
+service StringPath {
+  rpc StringPath (StringPathRequest) returns (google.api.HttpBody) {
+    option (google.api.http) = {
+      get : "/v1/:string/:opt_string/:wrap_string/*catch_all"
+    };
+  }
+}
+
+message StringPathRequest {
+  string string = 1;
+  optional string opt_string = 2;
+  google.protobuf.StringValue wrap_string = 3;
+  string catch_all = 4;
+}
+service EnumPath {
+  rpc EnumPath (EnumPathRequest) returns (google.api.HttpBody) {
+    option (google.api.http) = {
+      get : "/v1/:status/:opt_status"
+    };
+  }
+}
+
+message EnumPathRequest {
+  enum Status {
+    UNKNOWN = 0;
+    OK = 1;
+    CANCELLED = 2;
+    UNKNOWN_ERROR = 3;
+  }
+  Status status = 1;
+  optional Status opt_status = 2;
+}
