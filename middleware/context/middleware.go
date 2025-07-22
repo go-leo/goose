@@ -1,4 +1,4 @@
-package gincontext
+package context
 
 import (
 	"github.com/gin-gonic/gin"
