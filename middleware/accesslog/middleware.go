@@ -1,24 +1,24 @@
 package accesslog
 
 import (
-	"context"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
 )
 
-type LoggerFactory func(ctx context.Context) *slog.Logger
+type LoggerFactory func(ctx *gin.Context) *slog.Logger
 
 type options struct {
 	loggerFactory LoggerFactory
 	level         slog.Level
 }
 
-func (o *options) apply(opts ...Option) {
+func (o *options) apply(opts ...Option) *options {
 	for _, opt := range opts {
 		opt(o)
 	}
+	return o
 }
 
 type Option func(o *options)
@@ -40,22 +40,20 @@ func WithLevel(level slog.Level) Option {
 }
 
 func Middleware(opts ...Option) gin.HandlerFunc {
-	o := defaultOptions()
-	o.apply(opts...)
+	opt := defaultOptions().apply(opts...)
 	return func(c *gin.Context) {
-		if o.loggerFactory == nil {
+		if opt.loggerFactory == nil {
 			c.Next()
 			return
 		}
 		startTime := time.Now()
 		c.Next()
-		ctx := c.Request.Context()
-		logger := o.loggerFactory(ctx)
+		logger := opt.loggerFactory(c)
 		r := c.Request
 		builder := new(builder).
 			System().
 			StartTime(startTime).
-			Deadline(ctx).
+			Deadline(c).
 			Method(r.Method).
 			URI(r.RequestURI).
 			Proto(r.Proto).
@@ -63,6 +61,6 @@ func Middleware(opts ...Option) gin.HandlerFunc {
 			RemoteAddress(r.RemoteAddr).
 			Status(c.Writer.Status()).
 			Latency(time.Since(startTime))
-		logger.Log(ctx, o.level, c.FullPath(), builder.Build()...)
+		logger.LogAttrs(c, opt.level, c.FullPath(), builder.Build()...)
 	}
 }

@@ -1,28 +1,27 @@
 package gincontext
 
 import (
-	"context"
-
 	"github.com/gin-gonic/gin"
 )
 
-type ContextFunc func(ctx context.Context) context.Context
+type ContextFunc func(ctx *gin.Context) *gin.Context
 
 type options struct {
 	contextFunc ContextFunc
 }
 
-func (o *options) apply(opts ...Option) {
+func (o *options) apply(opts ...Option) *options {
 	for _, opt := range opts {
 		opt(o)
 	}
+	return o
 }
 
 type Option func(o *options)
 
 func defaultOptions() *options {
 	return &options{
-		contextFunc: func(ctx context.Context) context.Context { return ctx },
+		contextFunc: func(ctx *gin.Context) *gin.Context { return ctx },
 	}
 }
 
@@ -33,12 +32,10 @@ func WithContextFunc(contextFunc ContextFunc) Option {
 }
 
 func Middleware(opts ...Option) gin.HandlerFunc {
-	o := defaultOptions()
-	o.apply(opts...)
+	opt := defaultOptions().apply(opts...)
 	return func(c *gin.Context) {
-		ctx := c.Request.Context()
-		ctx = o.contextFunc(ctx)
-		c.Request = c.Request.WithContext(ctx)
+		c = opt.contextFunc(c)
+		c.Request = c.Request.WithContext(c)
 		c.Next()
 	}
 }

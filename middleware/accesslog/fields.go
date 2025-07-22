@@ -8,7 +8,7 @@ import (
 )
 
 type builder struct {
-	fields []any
+	fields []slog.Attr
 }
 
 func (f *builder) System() *builder {
@@ -63,6 +63,6 @@ func (f *builder) Status(status int) *builder {
 	return f
 }
 
-func (f *builder) Build() []any {
+func (f *builder) Build() []slog.Attr {
 	return f.fields
 }
