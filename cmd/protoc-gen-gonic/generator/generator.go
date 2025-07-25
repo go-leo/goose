@@ -22,10 +22,6 @@ func NewGenerator(plugin *protogen.Plugin, file *protogen.File) (*Generator, err
 }
 
 func (f *Generator) Generate() error {
-	return f.GenerateFile()
-}
-
-func (f *Generator) GenerateFile() error {
 	file := f.File
 	filename := file.GeneratedFilenamePrefix + "_gonic.pb.go"
 	g := f.Plugin.NewGeneratedFile(filename, file.GoImportPath)
@@ -34,12 +30,7 @@ func (f *Generator) GenerateFile() error {
 	g.P("package ", file.GoPackageName)
 	g.P()
 
-	services, err := gen.NewServices(file)
-	if err != nil {
-		return err
-	}
-
-	for _, service := range services {
+	for _, service := range f.Services {
 		if err := f.GenerateServices(service, g); err != nil {
 			return err
 		}
@@ -49,10 +40,10 @@ func (f *Generator) GenerateFile() error {
 		if err := f.GenerateHandlers(service, g); err != nil {
 			return err
 		}
-		if err := f.GenerateServerDecodeRequest(service, g); err != nil {
+		if err := new(RequestGenerator).GenerateDecodeRequest(service, g); err != nil {
 			return err
 		}
-		if err := f.GenerateServerEncodeResponse(service, g); err != nil {
+		if err := new(ResponseGenerator).GenerateEncodeResponse(service, g); err != nil {
 			return err
 		}
 	}
@@ -105,7 +96,7 @@ func (f *Generator) GenerateHandlers(service *gen.Service, g *protogen.Generated
 	g.P()
 	for _, endpoint := range service.Endpoints {
 		g.P("func (h ", service.Unexported(service.HandlerName()), ")", endpoint.Name(), "()", gen.HandlerFuncIdent, " {")
-		g.P("return ", gen.HandlerFuncIdent, "(func(ctx *",gen.GinContextIdent,") {")
+		g.P("return ", gen.HandlerFuncIdent, "(func(ctx *", gen.GinContextIdent, ") {")
 		g.P("in, err := h.decoder.", endpoint.Name(), "(ctx)")
 		g.P("if err != nil {")
 		g.P("h.errorEncoder(ctx, err, ctx.Writer)")

@@ -8,7 +8,9 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (f *Generator) GenerateServerDecodeRequest(service *gen.Service, g *protogen.GeneratedFile) error {
+type RequestGenerator struct{}
+
+func (f *RequestGenerator) GenerateDecodeRequest(service *gen.Service, g *protogen.GeneratedFile) error {
 	g.P("type ", service.Unexported(service.RequestDecoderName()), " struct {")
 	g.P("unmarshalOptions ", gen.ProtoJsonUnmarshalOptionsIdent)
 	g.P("shouldFailFast bool")
@@ -75,25 +77,25 @@ func (f *Generator) GenerateServerDecodeRequest(service *gen.Service, g *protoge
 	return nil
 }
 
-func (f *Generator) PrintHttpBodyDecodeBlock(g *protogen.GeneratedFile, tgtValue []any) {
+func (f *RequestGenerator) PrintHttpBodyDecodeBlock(g *protogen.GeneratedFile, tgtValue []any) {
 	g.P(append(append([]any{"if err := ", gen.DecodeHttpBodyIdent, "(ctx, r, "}, tgtValue...), "); err != nil {")...)
 	g.P("return nil, err")
 	g.P("}")
 }
 
-func (f *Generator) PrintHttpRequestEncodeBlock(g *protogen.GeneratedFile, tgtValue []any) {
+func (f *RequestGenerator) PrintHttpRequestEncodeBlock(g *protogen.GeneratedFile, tgtValue []any) {
 	g.P(append(append([]any{"if err := ", gen.DecodeHttpRequestIdent, "(ctx, r, "}, tgtValue...), "); err != nil {")...)
 	g.P("return nil, err")
 	g.P("}")
 }
 
-func (f *Generator) PrintRequestDecodeBlock(g *protogen.GeneratedFile, tgtValue []any) {
+func (f *RequestGenerator) PrintRequestDecodeBlock(g *protogen.GeneratedFile, tgtValue []any) {
 	g.P(append(append([]any{"if err := ", gen.DecodeRequestIdent, "(ctx, r, "}, tgtValue...), ", decoder.unmarshalOptions); err != nil {")...)
 	g.P("return nil, err")
 	g.P("}")
 }
 
-func (f *Generator) PrintPathField(g *protogen.GeneratedFile, pathFields []*protogen.Field) {
+func (f *RequestGenerator) PrintPathField(g *protogen.GeneratedFile, pathFields []*protogen.Field) {
 	if len(pathFields) <= 0 {
 		return
 	}
@@ -189,7 +191,7 @@ func (f *Generator) PrintPathField(g *protogen.GeneratedFile, pathFields []*prot
 	g.P("}")
 }
 
-func (f *Generator) PrintQueryField(g *protogen.GeneratedFile, queryFields []*protogen.Field) {
+func (f *RequestGenerator) PrintQueryField(g *protogen.GeneratedFile, queryFields []*protogen.Field) {
 	for _, field := range queryFields {
 		fieldName := string(field.Desc.Name())
 
@@ -350,11 +352,11 @@ func (f *Generator) PrintQueryField(g *protogen.GeneratedFile, queryFields []*pr
 	}
 }
 
-func (f *Generator) PrintFieldAssign(g *protogen.GeneratedFile, tgtValue []any, goType []any, getter protogen.GoIdent, key string, form string, errName string) {
+func (f *RequestGenerator) PrintFieldAssign(g *protogen.GeneratedFile, tgtValue []any, goType []any, getter protogen.GoIdent, key string, form string, errName string) {
 	g.P(append(append([]any{}, tgtValue...), append(append([]any{gen.DecodeFormIdent, "["}, goType...), append([]any{"](", errName, ", ", form, ", ", strconv.Quote(key), ", ", getter}, ")")...)...)...)
 }
 
-func (f *Generator) PrintStringValueAssign(g *protogen.GeneratedFile, tgtValue []any, srcValue []any, hasPresence bool) {
+func (f *RequestGenerator) PrintStringValueAssign(g *protogen.GeneratedFile, tgtValue []any, srcValue []any, hasPresence bool) {
 	if hasPresence {
 		g.P(append(tgtValue, append(append([]any{gen.ProtoStringIdent, "("}, srcValue...), ")")...)...)
 	} else {
@@ -362,14 +364,14 @@ func (f *Generator) PrintStringValueAssign(g *protogen.GeneratedFile, tgtValue [
 	}
 }
 
-func (f *Generator) PrintWrapStringValueAssign(g *protogen.GeneratedFile, tgtValue []any, srcValue []any) {
+func (f *RequestGenerator) PrintWrapStringValueAssign(g *protogen.GeneratedFile, tgtValue []any, srcValue []any) {
 	g.P(append(tgtValue, append(append([]any{gen.WrapperspbStringIdent, "("}, srcValue...), ")")...)...)
 }
 
-func (f *Generator) PrintStringListAssign(g *protogen.GeneratedFile, tgtValue []any, srcValue []any) {
+func (f *RequestGenerator) PrintStringListAssign(g *protogen.GeneratedFile, tgtValue []any, srcValue []any) {
 	g.P(append(tgtValue, srcValue...)...)
 }
 
-func (f *Generator) PrintWrapStringListAssign(g *protogen.GeneratedFile, tgtValue []any, srcValue []any) {
+func (f *RequestGenerator) PrintWrapStringListAssign(g *protogen.GeneratedFile, tgtValue []any, srcValue []any) {
 	g.P(append(tgtValue, append(append([]any{gen.GonicPackage.Ident("WrapStringSlice"), "("}, srcValue...), ")")...)...)
 }

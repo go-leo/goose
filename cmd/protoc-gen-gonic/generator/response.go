@@ -8,7 +8,9 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (f *Generator) GenerateServerEncodeResponse(service *gen.Service, g *protogen.GeneratedFile) error {
+type ResponseGenerator struct{}
+
+func (f *ResponseGenerator) GenerateEncodeResponse(service *gen.Service, g *protogen.GeneratedFile) error {
 	g.P("type ", service.Unexported(service.EncodeResponseName()), " struct {")
 	g.P("marshalOptions ", gen.ProtoJsonMarshalOptionsIdent)
 	g.P("unmarshalOptions ", gen.ProtoJsonUnmarshalOptionsIdent)
@@ -54,14 +56,14 @@ func (f *Generator) GenerateServerEncodeResponse(service *gen.Service, g *protog
 	return nil
 }
 
-func (f *Generator) PrintHttpBodyEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
+func (f *ResponseGenerator) PrintHttpBodyEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
 	g.P(append(append([]any{"return ", gen.EncodeHttpBodyIdent, "(ctx, ctx.Writer, "}, srcValue...), ")")...)
 }
 
-func (f *Generator) PrintHttpResponseEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
+func (f *ResponseGenerator) PrintHttpResponseEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
 	g.P(append(append([]any{"return ", gen.EncodeHttpResponseIdent, "(ctx, ctx.Writer, "}, srcValue...), ")")...)
 }
 
-func (f *Generator) PrintResponseEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
+func (f *ResponseGenerator) PrintResponseEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
 	g.P(append(append([]any{"return ", gen.EncodeResponseIdent, "(ctx, ctx.Writer, "}, srcValue...), ", encoder.marshalOptions)")...)
 }
