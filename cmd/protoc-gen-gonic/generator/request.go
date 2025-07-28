@@ -13,17 +13,18 @@ type RequestGenerator struct{}
 func (f *RequestGenerator) GenerateDecodeRequest(service *gen.Service, g *protogen.GeneratedFile) error {
 	g.P("type ", service.Unexported(service.RequestDecoderName()), " struct {")
 	g.P("unmarshalOptions ", gen.ProtoJsonUnmarshalOptionsIdent)
-	g.P("shouldFailFast bool")
-	g.P("onValidationErrCallback ", gen.OnValidationErrCallbackIdent)
+
 	g.P("}")
 	for _, endpoint := range service.Endpoints {
 		g.P("func (decoder ", service.Unexported(service.RequestDecoderName()), ")", endpoint.Name(), "(ctx *", gen.GinContextIdent, ") (*", endpoint.InputGoIdent(), ", error){")
 		g.P("r := ctx.Request")
 		g.P("req := &", endpoint.InputGoIdent(), "{}")
-		g.P("if ok, err := ", gen.CustomDecodeRequestIdent, "(ctx, r, req); ok && err != nil {")
+		g.P("ok, err := ", gen.CustomDecodeRequestIdent, "(ctx, r, req)")
+		g.P("if err != nil {")
 		g.P("return nil, err")
-		g.P("} else if ok && err == nil {")
-		g.P("return req, ", gen.ValidateRequestIdent, "(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)")
+		g.P("}")
+		g.P("if ok {")
+		g.P("return req, nil")
 		g.P("}")
 
 		bodyMessage, bodyField, pathFields, queryFields, err := endpoint.ParseParameters()
@@ -70,8 +71,8 @@ func (f *RequestGenerator) GenerateDecodeRequest(service *gen.Service, g *protog
 			g.P("}")
 		}
 
-		g.P("return req, ", gen.ValidateRequestIdent, "(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)")
-		g.P("}")
+		g.P("return req, nil")
+			g.P("}")
 	}
 	g.P()
 	return nil

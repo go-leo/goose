@@ -25,16 +25,16 @@ func AppendResponseBodyGonicRoute[Router gin.IRoutes](router Router, service Res
 	handler := responseBodyGonicHandler{
 		service: service,
 		decoder: responseBodyGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: responseBodyGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/omitted/response", gonic.Chain(handler.OmittedResponse(), options.Middlewares()...)...)
 	router.Match([]string{"GET"}, "/v1/star/response", gonic.Chain(handler.StarResponse(), options.Middlewares()...)...)
@@ -46,16 +46,22 @@ func AppendResponseBodyGonicRoute[Router gin.IRoutes](router Router, service Res
 }
 
 type responseBodyGonicHandler struct {
-	service      ResponseBodyGonicService
-	decoder      responseBodyGonicRequestDecoder
-	encoder      responseBodyGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 ResponseBodyGonicService
+	decoder                 responseBodyGonicRequestDecoder
+	encoder                 responseBodyGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h responseBodyGonicHandler) OmittedResponse() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.OmittedResponse(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -78,6 +84,10 @@ func (h responseBodyGonicHandler) StarResponse() gin.HandlerFunc {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
 		out, err := h.service.StarResponse(ctx, in)
 		if err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
@@ -94,6 +104,10 @@ func (h responseBodyGonicHandler) NamedResponse() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.NamedResponse(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -116,6 +130,10 @@ func (h responseBodyGonicHandler) HttpBodyResponse() gin.HandlerFunc {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
 		out, err := h.service.HttpBodyResponse(ctx, in)
 		if err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
@@ -132,6 +150,10 @@ func (h responseBodyGonicHandler) HttpBodyNamedResponse() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.HttpBodyNamedResponse(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -154,6 +176,10 @@ func (h responseBodyGonicHandler) HttpResponse() gin.HandlerFunc {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
 		out, err := h.service.HttpResponse(ctx, in)
 		if err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
@@ -167,18 +193,18 @@ func (h responseBodyGonicHandler) HttpResponse() gin.HandlerFunc {
 }
 
 type responseBodyGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder responseBodyGonicRequestDecoder) OmittedResponse(ctx *gin.Context) (*Request, error) {
 	r := ctx.Request
 	req := &Request{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -186,15 +212,17 @@ func (decoder responseBodyGonicRequestDecoder) OmittedResponse(ctx *gin.Context)
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 func (decoder responseBodyGonicRequestDecoder) StarResponse(ctx *gin.Context) (*Request, error) {
 	r := ctx.Request
 	req := &Request{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -202,15 +230,17 @@ func (decoder responseBodyGonicRequestDecoder) StarResponse(ctx *gin.Context) (*
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 func (decoder responseBodyGonicRequestDecoder) NamedResponse(ctx *gin.Context) (*Request, error) {
 	r := ctx.Request
 	req := &Request{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -218,15 +248,17 @@ func (decoder responseBodyGonicRequestDecoder) NamedResponse(ctx *gin.Context) (
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 func (decoder responseBodyGonicRequestDecoder) HttpBodyResponse(ctx *gin.Context) (*Request, error) {
 	r := ctx.Request
 	req := &Request{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -234,15 +266,17 @@ func (decoder responseBodyGonicRequestDecoder) HttpBodyResponse(ctx *gin.Context
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 func (decoder responseBodyGonicRequestDecoder) HttpBodyNamedResponse(ctx *gin.Context) (*Request, error) {
 	r := ctx.Request
 	req := &Request{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -250,15 +284,17 @@ func (decoder responseBodyGonicRequestDecoder) HttpBodyNamedResponse(ctx *gin.Co
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 func (decoder responseBodyGonicRequestDecoder) HttpResponse(ctx *gin.Context) (*Request, error) {
 	r := ctx.Request
 	req := &Request{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -266,7 +302,7 @@ func (decoder responseBodyGonicRequestDecoder) HttpResponse(ctx *gin.Context) (*
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type responseBodyGonicEncodeResponse struct {

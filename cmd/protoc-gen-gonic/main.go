@@ -15,7 +15,7 @@ var flags flag.FlagSet
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "--version" {
-		fmt.Fprintf(os.Stdout, "%v %v\n", filepath.Base(os.Args[0]), "v1.6.2")
+		fmt.Fprintf(os.Stdout, "%v %v\n", filepath.Base(os.Args[0]), "v1.6.3")
 		os.Exit(0)
 	}
 	options := &protogen.Options{ParamFunc: flags.Set}

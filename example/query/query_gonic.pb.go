@@ -21,32 +21,38 @@ func AppendBoolQueryGonicRoute[Router gin.IRoutes](router Router, service BoolQu
 	handler := boolQueryGonicHandler{
 		service: service,
 		decoder: boolQueryGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: boolQueryGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/bool", gonic.Chain(handler.BoolQuery(), options.Middlewares()...)...)
 	return router
 }
 
 type boolQueryGonicHandler struct {
-	service      BoolQueryGonicService
-	decoder      boolQueryGonicRequestDecoder
-	encoder      boolQueryGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 BoolQueryGonicService
+	decoder                 boolQueryGonicRequestDecoder
+	encoder                 boolQueryGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h boolQueryGonicHandler) BoolQuery() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.BoolQuery(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -63,18 +69,18 @@ func (h boolQueryGonicHandler) BoolQuery() gin.HandlerFunc {
 }
 
 type boolQueryGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder boolQueryGonicRequestDecoder) BoolQuery(ctx *gin.Context) (*BoolQueryRequest, error) {
 	r := ctx.Request
 	req := &BoolQueryRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -86,7 +92,7 @@ func (decoder boolQueryGonicRequestDecoder) BoolQuery(ctx *gin.Context) (*BoolQu
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type boolQueryGonicEncodeResponse struct {
@@ -108,32 +114,38 @@ func AppendInt32QueryGonicRoute[Router gin.IRoutes](router Router, service Int32
 	handler := int32QueryGonicHandler{
 		service: service,
 		decoder: int32QueryGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: int32QueryGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/int32", gonic.Chain(handler.Int32Query(), options.Middlewares()...)...)
 	return router
 }
 
 type int32QueryGonicHandler struct {
-	service      Int32QueryGonicService
-	decoder      int32QueryGonicRequestDecoder
-	encoder      int32QueryGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 Int32QueryGonicService
+	decoder                 int32QueryGonicRequestDecoder
+	encoder                 int32QueryGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h int32QueryGonicHandler) Int32Query() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.Int32Query(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -150,18 +162,18 @@ func (h int32QueryGonicHandler) Int32Query() gin.HandlerFunc {
 }
 
 type int32QueryGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder int32QueryGonicRequestDecoder) Int32Query(ctx *gin.Context) (*Int32QueryRequest, error) {
 	r := ctx.Request
 	req := &Int32QueryRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -179,7 +191,7 @@ func (decoder int32QueryGonicRequestDecoder) Int32Query(ctx *gin.Context) (*Int3
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type int32QueryGonicEncodeResponse struct {
@@ -201,32 +213,38 @@ func AppendInt64QueryGonicRoute[Router gin.IRoutes](router Router, service Int64
 	handler := int64QueryGonicHandler{
 		service: service,
 		decoder: int64QueryGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: int64QueryGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/int64", gonic.Chain(handler.Int64Query(), options.Middlewares()...)...)
 	return router
 }
 
 type int64QueryGonicHandler struct {
-	service      Int64QueryGonicService
-	decoder      int64QueryGonicRequestDecoder
-	encoder      int64QueryGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 Int64QueryGonicService
+	decoder                 int64QueryGonicRequestDecoder
+	encoder                 int64QueryGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h int64QueryGonicHandler) Int64Query() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.Int64Query(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -243,18 +261,18 @@ func (h int64QueryGonicHandler) Int64Query() gin.HandlerFunc {
 }
 
 type int64QueryGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder int64QueryGonicRequestDecoder) Int64Query(ctx *gin.Context) (*Int64QueryRequest, error) {
 	r := ctx.Request
 	req := &Int64QueryRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -272,7 +290,7 @@ func (decoder int64QueryGonicRequestDecoder) Int64Query(ctx *gin.Context) (*Int6
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type int64QueryGonicEncodeResponse struct {
@@ -294,32 +312,38 @@ func AppendUint32QueryGonicRoute[Router gin.IRoutes](router Router, service Uint
 	handler := uint32QueryGonicHandler{
 		service: service,
 		decoder: uint32QueryGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: uint32QueryGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/uint32", gonic.Chain(handler.Uint32Query(), options.Middlewares()...)...)
 	return router
 }
 
 type uint32QueryGonicHandler struct {
-	service      Uint32QueryGonicService
-	decoder      uint32QueryGonicRequestDecoder
-	encoder      uint32QueryGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 Uint32QueryGonicService
+	decoder                 uint32QueryGonicRequestDecoder
+	encoder                 uint32QueryGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h uint32QueryGonicHandler) Uint32Query() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.Uint32Query(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -336,18 +360,18 @@ func (h uint32QueryGonicHandler) Uint32Query() gin.HandlerFunc {
 }
 
 type uint32QueryGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder uint32QueryGonicRequestDecoder) Uint32Query(ctx *gin.Context) (*Uint32QueryRequest, error) {
 	r := ctx.Request
 	req := &Uint32QueryRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -362,7 +386,7 @@ func (decoder uint32QueryGonicRequestDecoder) Uint32Query(ctx *gin.Context) (*Ui
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type uint32QueryGonicEncodeResponse struct {
@@ -384,32 +408,38 @@ func AppendUint64QueryGonicRoute[Router gin.IRoutes](router Router, service Uint
 	handler := uint64QueryGonicHandler{
 		service: service,
 		decoder: uint64QueryGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: uint64QueryGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/uint64", gonic.Chain(handler.Uint64Query(), options.Middlewares()...)...)
 	return router
 }
 
 type uint64QueryGonicHandler struct {
-	service      Uint64QueryGonicService
-	decoder      uint64QueryGonicRequestDecoder
-	encoder      uint64QueryGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 Uint64QueryGonicService
+	decoder                 uint64QueryGonicRequestDecoder
+	encoder                 uint64QueryGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h uint64QueryGonicHandler) Uint64Query() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.Uint64Query(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -426,18 +456,18 @@ func (h uint64QueryGonicHandler) Uint64Query() gin.HandlerFunc {
 }
 
 type uint64QueryGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder uint64QueryGonicRequestDecoder) Uint64Query(ctx *gin.Context) (*Uint64QueryRequest, error) {
 	r := ctx.Request
 	req := &Uint64QueryRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -452,7 +482,7 @@ func (decoder uint64QueryGonicRequestDecoder) Uint64Query(ctx *gin.Context) (*Ui
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type uint64QueryGonicEncodeResponse struct {
@@ -474,32 +504,38 @@ func AppendFloatQueryGonicRoute[Router gin.IRoutes](router Router, service Float
 	handler := floatQueryGonicHandler{
 		service: service,
 		decoder: floatQueryGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: floatQueryGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/float", gonic.Chain(handler.FloatQuery(), options.Middlewares()...)...)
 	return router
 }
 
 type floatQueryGonicHandler struct {
-	service      FloatQueryGonicService
-	decoder      floatQueryGonicRequestDecoder
-	encoder      floatQueryGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 FloatQueryGonicService
+	decoder                 floatQueryGonicRequestDecoder
+	encoder                 floatQueryGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h floatQueryGonicHandler) FloatQuery() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.FloatQuery(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -516,18 +552,18 @@ func (h floatQueryGonicHandler) FloatQuery() gin.HandlerFunc {
 }
 
 type floatQueryGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder floatQueryGonicRequestDecoder) FloatQuery(ctx *gin.Context) (*FloatQueryRequest, error) {
 	r := ctx.Request
 	req := &FloatQueryRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -539,7 +575,7 @@ func (decoder floatQueryGonicRequestDecoder) FloatQuery(ctx *gin.Context) (*Floa
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type floatQueryGonicEncodeResponse struct {
@@ -561,32 +597,38 @@ func AppendDoubleQueryGonicRoute[Router gin.IRoutes](router Router, service Doub
 	handler := doubleQueryGonicHandler{
 		service: service,
 		decoder: doubleQueryGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: doubleQueryGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/double", gonic.Chain(handler.DoubleQuery(), options.Middlewares()...)...)
 	return router
 }
 
 type doubleQueryGonicHandler struct {
-	service      DoubleQueryGonicService
-	decoder      doubleQueryGonicRequestDecoder
-	encoder      doubleQueryGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 DoubleQueryGonicService
+	decoder                 doubleQueryGonicRequestDecoder
+	encoder                 doubleQueryGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h doubleQueryGonicHandler) DoubleQuery() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.DoubleQuery(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -603,18 +645,18 @@ func (h doubleQueryGonicHandler) DoubleQuery() gin.HandlerFunc {
 }
 
 type doubleQueryGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder doubleQueryGonicRequestDecoder) DoubleQuery(ctx *gin.Context) (*DoubleQueryRequest, error) {
 	r := ctx.Request
 	req := &DoubleQueryRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -626,7 +668,7 @@ func (decoder doubleQueryGonicRequestDecoder) DoubleQuery(ctx *gin.Context) (*Do
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type doubleQueryGonicEncodeResponse struct {
@@ -648,32 +690,38 @@ func AppendStringQueryGonicRoute[Router gin.IRoutes](router Router, service Stri
 	handler := stringQueryGonicHandler{
 		service: service,
 		decoder: stringQueryGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: stringQueryGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/string", gonic.Chain(handler.StringQuery(), options.Middlewares()...)...)
 	return router
 }
 
 type stringQueryGonicHandler struct {
-	service      StringQueryGonicService
-	decoder      stringQueryGonicRequestDecoder
-	encoder      stringQueryGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 StringQueryGonicService
+	decoder                 stringQueryGonicRequestDecoder
+	encoder                 stringQueryGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h stringQueryGonicHandler) StringQuery() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.StringQuery(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -690,18 +738,18 @@ func (h stringQueryGonicHandler) StringQuery() gin.HandlerFunc {
 }
 
 type stringQueryGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder stringQueryGonicRequestDecoder) StringQuery(ctx *gin.Context) (*StringQueryRequest, error) {
 	r := ctx.Request
 	req := &StringQueryRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -713,7 +761,7 @@ func (decoder stringQueryGonicRequestDecoder) StringQuery(ctx *gin.Context) (*St
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type stringQueryGonicEncodeResponse struct {
@@ -735,32 +783,38 @@ func AppendEnumQueryGonicRoute[Router gin.IRoutes](router Router, service EnumQu
 	handler := enumQueryGonicHandler{
 		service: service,
 		decoder: enumQueryGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: enumQueryGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/enum", gonic.Chain(handler.EnumQuery(), options.Middlewares()...)...)
 	return router
 }
 
 type enumQueryGonicHandler struct {
-	service      EnumQueryGonicService
-	decoder      enumQueryGonicRequestDecoder
-	encoder      enumQueryGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 EnumQueryGonicService
+	decoder                 enumQueryGonicRequestDecoder
+	encoder                 enumQueryGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h enumQueryGonicHandler) EnumQuery() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.EnumQuery(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -777,18 +831,18 @@ func (h enumQueryGonicHandler) EnumQuery() gin.HandlerFunc {
 }
 
 type enumQueryGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder enumQueryGonicRequestDecoder) EnumQuery(ctx *gin.Context) (*EnumQueryRequest, error) {
 	r := ctx.Request
 	req := &EnumQueryRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -798,7 +852,7 @@ func (decoder enumQueryGonicRequestDecoder) EnumQuery(ctx *gin.Context) (*EnumQu
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type enumQueryGonicEncodeResponse struct {

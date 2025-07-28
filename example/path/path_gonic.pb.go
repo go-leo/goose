@@ -21,32 +21,38 @@ func AppendBoolPathGonicRoute[Router gin.IRoutes](router Router, service BoolPat
 	handler := boolPathGonicHandler{
 		service: service,
 		decoder: boolPathGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: boolPathGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/:bool/:opt_bool/:wrap_bool", gonic.Chain(handler.BoolPath(), options.Middlewares()...)...)
 	return router
 }
 
 type boolPathGonicHandler struct {
-	service      BoolPathGonicService
-	decoder      boolPathGonicRequestDecoder
-	encoder      boolPathGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 BoolPathGonicService
+	decoder                 boolPathGonicRequestDecoder
+	encoder                 boolPathGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h boolPathGonicHandler) BoolPath() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.BoolPath(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -63,18 +69,18 @@ func (h boolPathGonicHandler) BoolPath() gin.HandlerFunc {
 }
 
 type boolPathGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder boolPathGonicRequestDecoder) BoolPath(ctx *gin.Context) (*BoolPathRequest, error) {
 	r := ctx.Request
 	req := &BoolPathRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	vars := gonic.FormFromParams(ctx.Params)
 	var varErr error
@@ -84,7 +90,7 @@ func (decoder boolPathGonicRequestDecoder) BoolPath(ctx *gin.Context) (*BoolPath
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type boolPathGonicEncodeResponse struct {
@@ -106,32 +112,38 @@ func AppendInt32PathGonicRoute[Router gin.IRoutes](router Router, service Int32P
 	handler := int32PathGonicHandler{
 		service: service,
 		decoder: int32PathGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: int32PathGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/:int32/:sint32/:sfixed32/:opt_int32/:opt_sint32/:opt_sfixed32/:wrap_int32", gonic.Chain(handler.Int32Path(), options.Middlewares()...)...)
 	return router
 }
 
 type int32PathGonicHandler struct {
-	service      Int32PathGonicService
-	decoder      int32PathGonicRequestDecoder
-	encoder      int32PathGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 Int32PathGonicService
+	decoder                 int32PathGonicRequestDecoder
+	encoder                 int32PathGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h int32PathGonicHandler) Int32Path() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.Int32Path(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -148,18 +160,18 @@ func (h int32PathGonicHandler) Int32Path() gin.HandlerFunc {
 }
 
 type int32PathGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder int32PathGonicRequestDecoder) Int32Path(ctx *gin.Context) (*Int32PathRequest, error) {
 	r := ctx.Request
 	req := &Int32PathRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	vars := gonic.FormFromParams(ctx.Params)
 	var varErr error
@@ -173,7 +185,7 @@ func (decoder int32PathGonicRequestDecoder) Int32Path(ctx *gin.Context) (*Int32P
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type int32PathGonicEncodeResponse struct {
@@ -195,32 +207,38 @@ func AppendInt64PathGonicRoute[Router gin.IRoutes](router Router, service Int64P
 	handler := int64PathGonicHandler{
 		service: service,
 		decoder: int64PathGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: int64PathGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/:int64/:sint64/:sfixed64/:opt_int64/:opt_sint64/:opt_sfixed64/:wrap_int64", gonic.Chain(handler.Int64Path(), options.Middlewares()...)...)
 	return router
 }
 
 type int64PathGonicHandler struct {
-	service      Int64PathGonicService
-	decoder      int64PathGonicRequestDecoder
-	encoder      int64PathGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 Int64PathGonicService
+	decoder                 int64PathGonicRequestDecoder
+	encoder                 int64PathGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h int64PathGonicHandler) Int64Path() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.Int64Path(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -237,18 +255,18 @@ func (h int64PathGonicHandler) Int64Path() gin.HandlerFunc {
 }
 
 type int64PathGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder int64PathGonicRequestDecoder) Int64Path(ctx *gin.Context) (*Int64PathRequest, error) {
 	r := ctx.Request
 	req := &Int64PathRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	vars := gonic.FormFromParams(ctx.Params)
 	var varErr error
@@ -262,7 +280,7 @@ func (decoder int64PathGonicRequestDecoder) Int64Path(ctx *gin.Context) (*Int64P
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type int64PathGonicEncodeResponse struct {
@@ -284,32 +302,38 @@ func AppendUint32PathGonicRoute[Router gin.IRoutes](router Router, service Uint3
 	handler := uint32PathGonicHandler{
 		service: service,
 		decoder: uint32PathGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: uint32PathGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/:uint32/:fixed32/:opt_uint32/:opt_fixed32/:wrap_uint32", gonic.Chain(handler.Uint32Path(), options.Middlewares()...)...)
 	return router
 }
 
 type uint32PathGonicHandler struct {
-	service      Uint32PathGonicService
-	decoder      uint32PathGonicRequestDecoder
-	encoder      uint32PathGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 Uint32PathGonicService
+	decoder                 uint32PathGonicRequestDecoder
+	encoder                 uint32PathGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h uint32PathGonicHandler) Uint32Path() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.Uint32Path(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -326,18 +350,18 @@ func (h uint32PathGonicHandler) Uint32Path() gin.HandlerFunc {
 }
 
 type uint32PathGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder uint32PathGonicRequestDecoder) Uint32Path(ctx *gin.Context) (*Uint32PathRequest, error) {
 	r := ctx.Request
 	req := &Uint32PathRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	vars := gonic.FormFromParams(ctx.Params)
 	var varErr error
@@ -349,7 +373,7 @@ func (decoder uint32PathGonicRequestDecoder) Uint32Path(ctx *gin.Context) (*Uint
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type uint32PathGonicEncodeResponse struct {
@@ -371,32 +395,38 @@ func AppendUint64PathGonicRoute[Router gin.IRoutes](router Router, service Uint6
 	handler := uint64PathGonicHandler{
 		service: service,
 		decoder: uint64PathGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: uint64PathGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/:uint64/:fixed64/:opt_uint64/:opt_fixed64/:wrap_uint64", gonic.Chain(handler.Uint64Path(), options.Middlewares()...)...)
 	return router
 }
 
 type uint64PathGonicHandler struct {
-	service      Uint64PathGonicService
-	decoder      uint64PathGonicRequestDecoder
-	encoder      uint64PathGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 Uint64PathGonicService
+	decoder                 uint64PathGonicRequestDecoder
+	encoder                 uint64PathGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h uint64PathGonicHandler) Uint64Path() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.Uint64Path(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -413,18 +443,18 @@ func (h uint64PathGonicHandler) Uint64Path() gin.HandlerFunc {
 }
 
 type uint64PathGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder uint64PathGonicRequestDecoder) Uint64Path(ctx *gin.Context) (*Uint64PathRequest, error) {
 	r := ctx.Request
 	req := &Uint64PathRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	vars := gonic.FormFromParams(ctx.Params)
 	var varErr error
@@ -436,7 +466,7 @@ func (decoder uint64PathGonicRequestDecoder) Uint64Path(ctx *gin.Context) (*Uint
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type uint64PathGonicEncodeResponse struct {
@@ -458,32 +488,38 @@ func AppendFloatPathGonicRoute[Router gin.IRoutes](router Router, service FloatP
 	handler := floatPathGonicHandler{
 		service: service,
 		decoder: floatPathGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: floatPathGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/:float/:opt_float/:wrap_float", gonic.Chain(handler.FloatPath(), options.Middlewares()...)...)
 	return router
 }
 
 type floatPathGonicHandler struct {
-	service      FloatPathGonicService
-	decoder      floatPathGonicRequestDecoder
-	encoder      floatPathGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 FloatPathGonicService
+	decoder                 floatPathGonicRequestDecoder
+	encoder                 floatPathGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h floatPathGonicHandler) FloatPath() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.FloatPath(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -500,18 +536,18 @@ func (h floatPathGonicHandler) FloatPath() gin.HandlerFunc {
 }
 
 type floatPathGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder floatPathGonicRequestDecoder) FloatPath(ctx *gin.Context) (*FloatPathRequest, error) {
 	r := ctx.Request
 	req := &FloatPathRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	vars := gonic.FormFromParams(ctx.Params)
 	var varErr error
@@ -521,7 +557,7 @@ func (decoder floatPathGonicRequestDecoder) FloatPath(ctx *gin.Context) (*FloatP
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type floatPathGonicEncodeResponse struct {
@@ -543,32 +579,38 @@ func AppendDoublePathGonicRoute[Router gin.IRoutes](router Router, service Doubl
 	handler := doublePathGonicHandler{
 		service: service,
 		decoder: doublePathGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: doublePathGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/:double/:opt_double/:wrap_double", gonic.Chain(handler.DoublePath(), options.Middlewares()...)...)
 	return router
 }
 
 type doublePathGonicHandler struct {
-	service      DoublePathGonicService
-	decoder      doublePathGonicRequestDecoder
-	encoder      doublePathGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 DoublePathGonicService
+	decoder                 doublePathGonicRequestDecoder
+	encoder                 doublePathGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h doublePathGonicHandler) DoublePath() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.DoublePath(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -585,18 +627,18 @@ func (h doublePathGonicHandler) DoublePath() gin.HandlerFunc {
 }
 
 type doublePathGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder doublePathGonicRequestDecoder) DoublePath(ctx *gin.Context) (*DoublePathRequest, error) {
 	r := ctx.Request
 	req := &DoublePathRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	vars := gonic.FormFromParams(ctx.Params)
 	var varErr error
@@ -606,7 +648,7 @@ func (decoder doublePathGonicRequestDecoder) DoublePath(ctx *gin.Context) (*Doub
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type doublePathGonicEncodeResponse struct {
@@ -628,32 +670,38 @@ func AppendStringPathGonicRoute[Router gin.IRoutes](router Router, service Strin
 	handler := stringPathGonicHandler{
 		service: service,
 		decoder: stringPathGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: stringPathGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/:string/:opt_string/:wrap_string/*catch_all", gonic.Chain(handler.StringPath(), options.Middlewares()...)...)
 	return router
 }
 
 type stringPathGonicHandler struct {
-	service      StringPathGonicService
-	decoder      stringPathGonicRequestDecoder
-	encoder      stringPathGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 StringPathGonicService
+	decoder                 stringPathGonicRequestDecoder
+	encoder                 stringPathGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h stringPathGonicHandler) StringPath() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.StringPath(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -670,18 +718,18 @@ func (h stringPathGonicHandler) StringPath() gin.HandlerFunc {
 }
 
 type stringPathGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder stringPathGonicRequestDecoder) StringPath(ctx *gin.Context) (*StringPathRequest, error) {
 	r := ctx.Request
 	req := &StringPathRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	vars := gonic.FormFromParams(ctx.Params)
 	var varErr error
@@ -692,7 +740,7 @@ func (decoder stringPathGonicRequestDecoder) StringPath(ctx *gin.Context) (*Stri
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type stringPathGonicEncodeResponse struct {
@@ -714,32 +762,38 @@ func AppendEnumPathGonicRoute[Router gin.IRoutes](router Router, service EnumPat
 	handler := enumPathGonicHandler{
 		service: service,
 		decoder: enumPathGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: enumPathGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"GET"}, "/v1/:status/:opt_status", gonic.Chain(handler.EnumPath(), options.Middlewares()...)...)
 	return router
 }
 
 type enumPathGonicHandler struct {
-	service      EnumPathGonicService
-	decoder      enumPathGonicRequestDecoder
-	encoder      enumPathGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 EnumPathGonicService
+	decoder                 enumPathGonicRequestDecoder
+	encoder                 enumPathGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h enumPathGonicHandler) EnumPath() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.EnumPath(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -756,18 +810,18 @@ func (h enumPathGonicHandler) EnumPath() gin.HandlerFunc {
 }
 
 type enumPathGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder enumPathGonicRequestDecoder) EnumPath(ctx *gin.Context) (*EnumPathRequest, error) {
 	r := ctx.Request
 	req := &EnumPathRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	vars := gonic.FormFromParams(ctx.Params)
 	var varErr error
@@ -776,7 +830,7 @@ func (decoder enumPathGonicRequestDecoder) EnumPath(ctx *gin.Context) (*EnumPath
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type enumPathGonicEncodeResponse struct {

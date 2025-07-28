@@ -23,16 +23,16 @@ func AppendUserGonicRoute[Router gin.IRoutes](router Router, service UserGonicSe
 	handler := userGonicHandler{
 		service: service,
 		decoder: userGonicRequestDecoder{
-			unmarshalOptions:        options.UnmarshalOptions(),
-			shouldFailFast:          options.ShouldFailFast(),
-			onValidationErrCallback: options.OnValidationErrCallback(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: userGonicEncodeResponse{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder: gonic.DefaultEncodeError,
+		errorEncoder:            gonic.DefaultEncodeError,
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
 	router.Match([]string{"POST"}, "/v1/user", gonic.Chain(handler.CreateUser(), options.Middlewares()...)...)
 	router.Match([]string{"DELETE"}, "/v1/user/:id", gonic.Chain(handler.DeleteUser(), options.Middlewares()...)...)
@@ -44,16 +44,22 @@ func AppendUserGonicRoute[Router gin.IRoutes](router Router, service UserGonicSe
 }
 
 type userGonicHandler struct {
-	service      UserGonicService
-	decoder      userGonicRequestDecoder
-	encoder      userGonicEncodeResponse
-	errorEncoder gonic.ErrorEncoder
+	service                 UserGonicService
+	decoder                 userGonicRequestDecoder
+	encoder                 userGonicEncodeResponse
+	errorEncoder            gonic.ErrorEncoder
+	shouldFailFast          bool
+	onValidationErrCallback gonic.OnValidationErrCallback
 }
 
 func (h userGonicHandler) CreateUser() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.CreateUser(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -76,6 +82,10 @@ func (h userGonicHandler) DeleteUser() gin.HandlerFunc {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
 		out, err := h.service.DeleteUser(ctx, in)
 		if err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
@@ -92,6 +102,10 @@ func (h userGonicHandler) ModifyUser() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.ModifyUser(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -114,6 +128,10 @@ func (h userGonicHandler) UpdateUser() gin.HandlerFunc {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
 		out, err := h.service.UpdateUser(ctx, in)
 		if err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
@@ -130,6 +148,10 @@ func (h userGonicHandler) GetUser() gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		in, err := h.decoder.GetUser(ctx)
 		if err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
@@ -152,6 +174,10 @@ func (h userGonicHandler) ListUser() gin.HandlerFunc {
 			h.errorEncoder(ctx, err, ctx.Writer)
 			return
 		}
+		if err := gonic.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+			h.errorEncoder(ctx, err, ctx.Writer)
+			return
+		}
 		out, err := h.service.ListUser(ctx, in)
 		if err != nil {
 			h.errorEncoder(ctx, err, ctx.Writer)
@@ -165,31 +191,33 @@ func (h userGonicHandler) ListUser() gin.HandlerFunc {
 }
 
 type userGonicRequestDecoder struct {
-	unmarshalOptions        protojson.UnmarshalOptions
-	shouldFailFast          bool
-	onValidationErrCallback gonic.OnValidationErrCallback
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (decoder userGonicRequestDecoder) CreateUser(ctx *gin.Context) (*CreateUserRequest, error) {
 	r := ctx.Request
 	req := &CreateUserRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	if err := gonic.DecodeRequest(ctx, r, req, decoder.unmarshalOptions); err != nil {
 		return nil, err
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 func (decoder userGonicRequestDecoder) DeleteUser(ctx *gin.Context) (*DeleteUserRequest, error) {
 	r := ctx.Request
 	req := &DeleteUserRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	vars := gonic.FormFromParams(ctx.Params)
 	var varErr error
@@ -197,15 +225,17 @@ func (decoder userGonicRequestDecoder) DeleteUser(ctx *gin.Context) (*DeleteUser
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 func (decoder userGonicRequestDecoder) ModifyUser(ctx *gin.Context) (*ModifyUserRequest, error) {
 	r := ctx.Request
 	req := &ModifyUserRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	if err := gonic.DecodeRequest(ctx, r, req, decoder.unmarshalOptions); err != nil {
 		return nil, err
@@ -216,15 +246,17 @@ func (decoder userGonicRequestDecoder) ModifyUser(ctx *gin.Context) (*ModifyUser
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 func (decoder userGonicRequestDecoder) UpdateUser(ctx *gin.Context) (*UpdateUserRequest, error) {
 	r := ctx.Request
 	req := &UpdateUserRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	if req.Item == nil {
 		req.Item = &UserItem{}
@@ -238,15 +270,17 @@ func (decoder userGonicRequestDecoder) UpdateUser(ctx *gin.Context) (*UpdateUser
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 func (decoder userGonicRequestDecoder) GetUser(ctx *gin.Context) (*GetUserRequest, error) {
 	r := ctx.Request
 	req := &GetUserRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	vars := gonic.FormFromParams(ctx.Params)
 	var varErr error
@@ -254,15 +288,17 @@ func (decoder userGonicRequestDecoder) GetUser(ctx *gin.Context) (*GetUserReques
 	if varErr != nil {
 		return nil, varErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 func (decoder userGonicRequestDecoder) ListUser(ctx *gin.Context) (*ListUserRequest, error) {
 	r := ctx.Request
 	req := &ListUserRequest{}
-	if ok, err := gonic.CustomDecodeRequest(ctx, r, req); ok && err != nil {
+	ok, err := gonic.CustomDecodeRequest(ctx, r, req)
+	if err != nil {
 		return nil, err
-	} else if ok && err == nil {
-		return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	}
+	if ok {
+		return req, nil
 	}
 	queries := r.URL.Query()
 	var queryErr error
@@ -271,7 +307,7 @@ func (decoder userGonicRequestDecoder) ListUser(ctx *gin.Context) (*ListUserRequ
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	return req, gonic.ValidateRequest(ctx, req, decoder.shouldFailFast, decoder.onValidationErrCallback)
+	return req, nil
 }
 
 type userGonicEncodeResponse struct {
