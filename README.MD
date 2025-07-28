@@ -219,4 +219,5 @@ func (m *MockUserService) ListUser(ctx context.Context, req *ListUserRequest) (*
 更多示例见 [example](https://github.com/go-leo/gonic/tree/example/user/server)
 
 # 子妹项目
-[github.com/go-leo/gorilla](https://github.com/go-leo/gorilla) 使用 gorilla/mux 管理路由。
+* [github.com/go-leo/gorilla](https://github.com/go-leo/gorilla) 使用 gorilla/mux 管理路由。
+* [github.com/go-leo/goose](https://github.com/go-leo/goose) 使用 Go 1.22 HTTP Router 管理路由。
