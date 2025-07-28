@@ -42,7 +42,7 @@ func (f *RequestGenerator) GenerateDecodeRequest(service *gen.Service, g *protog
 			}
 		} else if bodyField != nil {
 			tgtValue := []any{"req.", bodyField.GoName}
-			g.P(append(append(append([]any{"if "}, tgtValue...), " == nil {"))...)
+			g.P(append(append([]any{"if "}, tgtValue...), " == nil {")...)
 			g.P(append(tgtValue, " = &", bodyField.Message.GoIdent, "{}")...)
 			g.P("}")
 			switch bodyField.Desc.Kind() {
