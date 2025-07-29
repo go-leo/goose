@@ -1,4 +1,4 @@
-package generator
+package server
 
 import (
 	"fmt"
@@ -8,9 +8,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-type ResponseGenerator struct{}
-
-func (f *ResponseGenerator) GenerateEncodeResponse(service *gen.Service, g *protogen.GeneratedFile) error {
+func (generator *Generator) GenerateEncodeResponse(service *gen.Service, g *protogen.GeneratedFile) error {
 	g.P("type ", service.Unexported(service.EncodeResponseName()), " struct {")
 	g.P("marshalOptions ", gen.ProtoJsonMarshalOptionsIdent)
 	g.P("unmarshalOptions ", gen.ProtoJsonUnmarshalOptionsIdent)
@@ -25,13 +23,13 @@ func (f *ResponseGenerator) GenerateEncodeResponse(service *gen.Service, g *prot
 			switch message.Desc.FullName() {
 			case "google.api.HttpBody":
 				srcValue := []any{"resp"}
-				f.PrintHttpBodyEncodeBlock(g, srcValue)
+				generator.PrintHttpBodyEncodeBlock(g, srcValue)
 			case "google.rpc.HttpResponse":
 				srcValue := []any{"resp"}
-				f.PrintHttpResponseEncodeBlock(g, srcValue)
+				generator.PrintHttpResponseEncodeBlock(g, srcValue)
 			default:
 				srcValue := []any{"encoder.responseTransformer(ctx, resp)"}
-				f.PrintResponseEncodeBlock(g, srcValue)
+				generator.PrintResponseEncodeBlock(g, srcValue)
 			}
 		default:
 			bodyField := gen.FindField(bodyParameter, endpoint.Output())
@@ -43,10 +41,10 @@ func (f *ResponseGenerator) GenerateEncodeResponse(service *gen.Service, g *prot
 				switch bodyField.Message.Desc.FullName() {
 				case "google.api.HttpBody":
 					srcValue := []any{"resp.Get", bodyField.GoName, "()"}
-					f.PrintHttpBodyEncodeBlock(g, srcValue)
+					generator.PrintHttpBodyEncodeBlock(g, srcValue)
 				default:
 					srcValue := []any{"encoder.responseTransformer(ctx, resp.Get", bodyField.GoName, "())"}
-					f.PrintResponseEncodeBlock(g, srcValue)
+					generator.PrintResponseEncodeBlock(g, srcValue)
 				}
 			}
 		}
@@ -56,14 +54,14 @@ func (f *ResponseGenerator) GenerateEncodeResponse(service *gen.Service, g *prot
 	return nil
 }
 
-func (f *ResponseGenerator) PrintHttpBodyEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
+func (generator *Generator) PrintHttpBodyEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
 	g.P(append(append([]any{"return ", gen.EncodeHttpBodyIdent, "(ctx, ctx.Writer, "}, srcValue...), ")")...)
 }
 
-func (f *ResponseGenerator) PrintHttpResponseEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
+func (generator *Generator) PrintHttpResponseEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
 	g.P(append(append([]any{"return ", gen.EncodeHttpResponseIdent, "(ctx, ctx.Writer, "}, srcValue...), ")")...)
 }
 
-func (f *ResponseGenerator) PrintResponseEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
+func (generator *Generator) PrintResponseEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
 	g.P(append(append([]any{"return ", gen.EncodeResponseIdent, "(ctx, ctx.Writer, "}, srcValue...), ", encoder.marshalOptions)")...)
 }
