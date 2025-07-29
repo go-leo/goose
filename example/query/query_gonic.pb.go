@@ -23,7 +23,7 @@ func AppendBoolQueryGonicRoute[Router gin.IRoutes](router Router, service BoolQu
 		decoder: boolQueryGonicRequestDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		encoder: boolQueryGonicEncodeResponse{
+		encoder: boolQueryGonicResponseEncoder{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
@@ -39,7 +39,7 @@ func AppendBoolQueryGonicRoute[Router gin.IRoutes](router Router, service BoolQu
 type boolQueryGonicHandler struct {
 	service                 BoolQueryGonicService
 	decoder                 boolQueryGonicRequestDecoder
-	encoder                 boolQueryGonicEncodeResponse
+	encoder                 boolQueryGonicResponseEncoder
 	errorEncoder            gonic.ErrorEncoder
 	shouldFailFast          bool
 	onValidationErrCallback gonic.OnValidationErrCallback
@@ -95,13 +95,13 @@ func (decoder boolQueryGonicRequestDecoder) BoolQuery(ctx *gin.Context) (*BoolQu
 	return req, nil
 }
 
-type boolQueryGonicEncodeResponse struct {
+type boolQueryGonicResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
 	responseTransformer gonic.ResponseTransformer
 }
 
-func (encoder boolQueryGonicEncodeResponse) BoolQuery(ctx *gin.Context, resp *httpbody.HttpBody) error {
+func (encoder boolQueryGonicResponseEncoder) BoolQuery(ctx *gin.Context, resp *httpbody.HttpBody) error {
 	return gonic.EncodeHttpBody(ctx, ctx.Writer, resp)
 }
 
@@ -116,7 +116,7 @@ func AppendInt32QueryGonicRoute[Router gin.IRoutes](router Router, service Int32
 		decoder: int32QueryGonicRequestDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		encoder: int32QueryGonicEncodeResponse{
+		encoder: int32QueryGonicResponseEncoder{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
@@ -132,7 +132,7 @@ func AppendInt32QueryGonicRoute[Router gin.IRoutes](router Router, service Int32
 type int32QueryGonicHandler struct {
 	service                 Int32QueryGonicService
 	decoder                 int32QueryGonicRequestDecoder
-	encoder                 int32QueryGonicEncodeResponse
+	encoder                 int32QueryGonicResponseEncoder
 	errorEncoder            gonic.ErrorEncoder
 	shouldFailFast          bool
 	onValidationErrCallback gonic.OnValidationErrCallback
@@ -194,13 +194,13 @@ func (decoder int32QueryGonicRequestDecoder) Int32Query(ctx *gin.Context) (*Int3
 	return req, nil
 }
 
-type int32QueryGonicEncodeResponse struct {
+type int32QueryGonicResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
 	responseTransformer gonic.ResponseTransformer
 }
 
-func (encoder int32QueryGonicEncodeResponse) Int32Query(ctx *gin.Context, resp *httpbody.HttpBody) error {
+func (encoder int32QueryGonicResponseEncoder) Int32Query(ctx *gin.Context, resp *httpbody.HttpBody) error {
 	return gonic.EncodeHttpBody(ctx, ctx.Writer, resp)
 }
 
@@ -215,7 +215,7 @@ func AppendInt64QueryGonicRoute[Router gin.IRoutes](router Router, service Int64
 		decoder: int64QueryGonicRequestDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		encoder: int64QueryGonicEncodeResponse{
+		encoder: int64QueryGonicResponseEncoder{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
@@ -231,7 +231,7 @@ func AppendInt64QueryGonicRoute[Router gin.IRoutes](router Router, service Int64
 type int64QueryGonicHandler struct {
 	service                 Int64QueryGonicService
 	decoder                 int64QueryGonicRequestDecoder
-	encoder                 int64QueryGonicEncodeResponse
+	encoder                 int64QueryGonicResponseEncoder
 	errorEncoder            gonic.ErrorEncoder
 	shouldFailFast          bool
 	onValidationErrCallback gonic.OnValidationErrCallback
@@ -293,13 +293,13 @@ func (decoder int64QueryGonicRequestDecoder) Int64Query(ctx *gin.Context) (*Int6
 	return req, nil
 }
 
-type int64QueryGonicEncodeResponse struct {
+type int64QueryGonicResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
 	responseTransformer gonic.ResponseTransformer
 }
 
-func (encoder int64QueryGonicEncodeResponse) Int64Query(ctx *gin.Context, resp *httpbody.HttpBody) error {
+func (encoder int64QueryGonicResponseEncoder) Int64Query(ctx *gin.Context, resp *httpbody.HttpBody) error {
 	return gonic.EncodeHttpBody(ctx, ctx.Writer, resp)
 }
 
@@ -314,7 +314,7 @@ func AppendUint32QueryGonicRoute[Router gin.IRoutes](router Router, service Uint
 		decoder: uint32QueryGonicRequestDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		encoder: uint32QueryGonicEncodeResponse{
+		encoder: uint32QueryGonicResponseEncoder{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
@@ -330,7 +330,7 @@ func AppendUint32QueryGonicRoute[Router gin.IRoutes](router Router, service Uint
 type uint32QueryGonicHandler struct {
 	service                 Uint32QueryGonicService
 	decoder                 uint32QueryGonicRequestDecoder
-	encoder                 uint32QueryGonicEncodeResponse
+	encoder                 uint32QueryGonicResponseEncoder
 	errorEncoder            gonic.ErrorEncoder
 	shouldFailFast          bool
 	onValidationErrCallback gonic.OnValidationErrCallback
@@ -389,13 +389,13 @@ func (decoder uint32QueryGonicRequestDecoder) Uint32Query(ctx *gin.Context) (*Ui
 	return req, nil
 }
 
-type uint32QueryGonicEncodeResponse struct {
+type uint32QueryGonicResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
 	responseTransformer gonic.ResponseTransformer
 }
 
-func (encoder uint32QueryGonicEncodeResponse) Uint32Query(ctx *gin.Context, resp *httpbody.HttpBody) error {
+func (encoder uint32QueryGonicResponseEncoder) Uint32Query(ctx *gin.Context, resp *httpbody.HttpBody) error {
 	return gonic.EncodeHttpBody(ctx, ctx.Writer, resp)
 }
 
@@ -410,7 +410,7 @@ func AppendUint64QueryGonicRoute[Router gin.IRoutes](router Router, service Uint
 		decoder: uint64QueryGonicRequestDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		encoder: uint64QueryGonicEncodeResponse{
+		encoder: uint64QueryGonicResponseEncoder{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
@@ -426,7 +426,7 @@ func AppendUint64QueryGonicRoute[Router gin.IRoutes](router Router, service Uint
 type uint64QueryGonicHandler struct {
 	service                 Uint64QueryGonicService
 	decoder                 uint64QueryGonicRequestDecoder
-	encoder                 uint64QueryGonicEncodeResponse
+	encoder                 uint64QueryGonicResponseEncoder
 	errorEncoder            gonic.ErrorEncoder
 	shouldFailFast          bool
 	onValidationErrCallback gonic.OnValidationErrCallback
@@ -485,13 +485,13 @@ func (decoder uint64QueryGonicRequestDecoder) Uint64Query(ctx *gin.Context) (*Ui
 	return req, nil
 }
 
-type uint64QueryGonicEncodeResponse struct {
+type uint64QueryGonicResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
 	responseTransformer gonic.ResponseTransformer
 }
 
-func (encoder uint64QueryGonicEncodeResponse) Uint64Query(ctx *gin.Context, resp *httpbody.HttpBody) error {
+func (encoder uint64QueryGonicResponseEncoder) Uint64Query(ctx *gin.Context, resp *httpbody.HttpBody) error {
 	return gonic.EncodeHttpBody(ctx, ctx.Writer, resp)
 }
 
@@ -506,7 +506,7 @@ func AppendFloatQueryGonicRoute[Router gin.IRoutes](router Router, service Float
 		decoder: floatQueryGonicRequestDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		encoder: floatQueryGonicEncodeResponse{
+		encoder: floatQueryGonicResponseEncoder{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
@@ -522,7 +522,7 @@ func AppendFloatQueryGonicRoute[Router gin.IRoutes](router Router, service Float
 type floatQueryGonicHandler struct {
 	service                 FloatQueryGonicService
 	decoder                 floatQueryGonicRequestDecoder
-	encoder                 floatQueryGonicEncodeResponse
+	encoder                 floatQueryGonicResponseEncoder
 	errorEncoder            gonic.ErrorEncoder
 	shouldFailFast          bool
 	onValidationErrCallback gonic.OnValidationErrCallback
@@ -578,13 +578,13 @@ func (decoder floatQueryGonicRequestDecoder) FloatQuery(ctx *gin.Context) (*Floa
 	return req, nil
 }
 
-type floatQueryGonicEncodeResponse struct {
+type floatQueryGonicResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
 	responseTransformer gonic.ResponseTransformer
 }
 
-func (encoder floatQueryGonicEncodeResponse) FloatQuery(ctx *gin.Context, resp *httpbody.HttpBody) error {
+func (encoder floatQueryGonicResponseEncoder) FloatQuery(ctx *gin.Context, resp *httpbody.HttpBody) error {
 	return gonic.EncodeHttpBody(ctx, ctx.Writer, resp)
 }
 
@@ -599,7 +599,7 @@ func AppendDoubleQueryGonicRoute[Router gin.IRoutes](router Router, service Doub
 		decoder: doubleQueryGonicRequestDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		encoder: doubleQueryGonicEncodeResponse{
+		encoder: doubleQueryGonicResponseEncoder{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
@@ -615,7 +615,7 @@ func AppendDoubleQueryGonicRoute[Router gin.IRoutes](router Router, service Doub
 type doubleQueryGonicHandler struct {
 	service                 DoubleQueryGonicService
 	decoder                 doubleQueryGonicRequestDecoder
-	encoder                 doubleQueryGonicEncodeResponse
+	encoder                 doubleQueryGonicResponseEncoder
 	errorEncoder            gonic.ErrorEncoder
 	shouldFailFast          bool
 	onValidationErrCallback gonic.OnValidationErrCallback
@@ -671,13 +671,13 @@ func (decoder doubleQueryGonicRequestDecoder) DoubleQuery(ctx *gin.Context) (*Do
 	return req, nil
 }
 
-type doubleQueryGonicEncodeResponse struct {
+type doubleQueryGonicResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
 	responseTransformer gonic.ResponseTransformer
 }
 
-func (encoder doubleQueryGonicEncodeResponse) DoubleQuery(ctx *gin.Context, resp *httpbody.HttpBody) error {
+func (encoder doubleQueryGonicResponseEncoder) DoubleQuery(ctx *gin.Context, resp *httpbody.HttpBody) error {
 	return gonic.EncodeHttpBody(ctx, ctx.Writer, resp)
 }
 
@@ -692,7 +692,7 @@ func AppendStringQueryGonicRoute[Router gin.IRoutes](router Router, service Stri
 		decoder: stringQueryGonicRequestDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		encoder: stringQueryGonicEncodeResponse{
+		encoder: stringQueryGonicResponseEncoder{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
@@ -708,7 +708,7 @@ func AppendStringQueryGonicRoute[Router gin.IRoutes](router Router, service Stri
 type stringQueryGonicHandler struct {
 	service                 StringQueryGonicService
 	decoder                 stringQueryGonicRequestDecoder
-	encoder                 stringQueryGonicEncodeResponse
+	encoder                 stringQueryGonicResponseEncoder
 	errorEncoder            gonic.ErrorEncoder
 	shouldFailFast          bool
 	onValidationErrCallback gonic.OnValidationErrCallback
@@ -764,13 +764,13 @@ func (decoder stringQueryGonicRequestDecoder) StringQuery(ctx *gin.Context) (*St
 	return req, nil
 }
 
-type stringQueryGonicEncodeResponse struct {
+type stringQueryGonicResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
 	responseTransformer gonic.ResponseTransformer
 }
 
-func (encoder stringQueryGonicEncodeResponse) StringQuery(ctx *gin.Context, resp *httpbody.HttpBody) error {
+func (encoder stringQueryGonicResponseEncoder) StringQuery(ctx *gin.Context, resp *httpbody.HttpBody) error {
 	return gonic.EncodeHttpBody(ctx, ctx.Writer, resp)
 }
 
@@ -785,7 +785,7 @@ func AppendEnumQueryGonicRoute[Router gin.IRoutes](router Router, service EnumQu
 		decoder: enumQueryGonicRequestDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		encoder: enumQueryGonicEncodeResponse{
+		encoder: enumQueryGonicResponseEncoder{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
@@ -801,7 +801,7 @@ func AppendEnumQueryGonicRoute[Router gin.IRoutes](router Router, service EnumQu
 type enumQueryGonicHandler struct {
 	service                 EnumQueryGonicService
 	decoder                 enumQueryGonicRequestDecoder
-	encoder                 enumQueryGonicEncodeResponse
+	encoder                 enumQueryGonicResponseEncoder
 	errorEncoder            gonic.ErrorEncoder
 	shouldFailFast          bool
 	onValidationErrCallback gonic.OnValidationErrCallback
@@ -855,12 +855,12 @@ func (decoder enumQueryGonicRequestDecoder) EnumQuery(ctx *gin.Context) (*EnumQu
 	return req, nil
 }
 
-type enumQueryGonicEncodeResponse struct {
+type enumQueryGonicResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
 	responseTransformer gonic.ResponseTransformer
 }
 
-func (encoder enumQueryGonicEncodeResponse) EnumQuery(ctx *gin.Context, resp *httpbody.HttpBody) error {
+func (encoder enumQueryGonicResponseEncoder) EnumQuery(ctx *gin.Context, resp *httpbody.HttpBody) error {
 	return gonic.EncodeHttpBody(ctx, ctx.Writer, resp)
 }

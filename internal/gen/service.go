@@ -45,8 +45,8 @@ func (s *Service) RequestDecoderName() string {
 	return s.GonicName() + "RequestDecoder"
 }
 
-func (s *Service) EncodeResponseName() string {
-	return s.GonicName() + "EncodeResponse"
+func (s *Service) ResponseEncoderName() string {
+	return s.GonicName() + "ResponseEncoder"
 }
 
 func NewServices(file *protogen.File) ([]*Service, error) {

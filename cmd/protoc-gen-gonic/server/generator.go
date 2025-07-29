@@ -28,7 +28,7 @@ func (generator *Generator) GenerateAppendServerFunc(service *gen.Service, g *pr
 	g.P("unmarshalOptions: options.UnmarshalOptions(),")
 
 	g.P("},")
-	g.P("encoder: ", service.Unexported(service.EncodeResponseName()), "{")
+	g.P("encoder: ", service.Unexported(service.ResponseEncoderName()), "{")
 	g.P("marshalOptions: options.MarshalOptions(),")
 	g.P("unmarshalOptions: options.UnmarshalOptions(),")
 	g.P("responseTransformer: options.ResponseTransformer(),")
@@ -50,7 +50,7 @@ func (generator *Generator) GenerateHandlers(service *gen.Service, g *protogen.G
 	g.P("type ", service.Unexported(service.HandlerName()), " struct {")
 	g.P("service ", service.ServiceName())
 	g.P("decoder ", service.Unexported(service.RequestDecoderName()))
-	g.P("encoder ", service.Unexported(service.EncodeResponseName()))
+	g.P("encoder ", service.Unexported(service.ResponseEncoderName()))
 	g.P("errorEncoder ", gen.ErrorEncoderIdent)
 	g.P("shouldFailFast bool")
 	g.P("onValidationErrCallback ", gen.OnValidationErrCallbackIdent)

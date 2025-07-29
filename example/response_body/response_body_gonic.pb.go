@@ -27,7 +27,7 @@ func AppendResponseBodyGonicRoute[Router gin.IRoutes](router Router, service Res
 		decoder: responseBodyGonicRequestDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		encoder: responseBodyGonicEncodeResponse{
+		encoder: responseBodyGonicResponseEncoder{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
@@ -48,7 +48,7 @@ func AppendResponseBodyGonicRoute[Router gin.IRoutes](router Router, service Res
 type responseBodyGonicHandler struct {
 	service                 ResponseBodyGonicService
 	decoder                 responseBodyGonicRequestDecoder
-	encoder                 responseBodyGonicEncodeResponse
+	encoder                 responseBodyGonicResponseEncoder
 	errorEncoder            gonic.ErrorEncoder
 	shouldFailFast          bool
 	onValidationErrCallback gonic.OnValidationErrCallback
@@ -305,27 +305,27 @@ func (decoder responseBodyGonicRequestDecoder) HttpResponse(ctx *gin.Context) (*
 	return req, nil
 }
 
-type responseBodyGonicEncodeResponse struct {
+type responseBodyGonicResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
 	responseTransformer gonic.ResponseTransformer
 }
 
-func (encoder responseBodyGonicEncodeResponse) OmittedResponse(ctx *gin.Context, resp *Response) error {
+func (encoder responseBodyGonicResponseEncoder) OmittedResponse(ctx *gin.Context, resp *Response) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
-func (encoder responseBodyGonicEncodeResponse) StarResponse(ctx *gin.Context, resp *Response) error {
+func (encoder responseBodyGonicResponseEncoder) StarResponse(ctx *gin.Context, resp *Response) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
-func (encoder responseBodyGonicEncodeResponse) NamedResponse(ctx *gin.Context, resp *NamedBodyResponse) error {
+func (encoder responseBodyGonicResponseEncoder) NamedResponse(ctx *gin.Context, resp *NamedBodyResponse) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp.GetBody()), encoder.marshalOptions)
 }
-func (encoder responseBodyGonicEncodeResponse) HttpBodyResponse(ctx *gin.Context, resp *httpbody.HttpBody) error {
+func (encoder responseBodyGonicResponseEncoder) HttpBodyResponse(ctx *gin.Context, resp *httpbody.HttpBody) error {
 	return gonic.EncodeHttpBody(ctx, ctx.Writer, resp)
 }
-func (encoder responseBodyGonicEncodeResponse) HttpBodyNamedResponse(ctx *gin.Context, resp *NamedHttpBodyResponse) error {
+func (encoder responseBodyGonicResponseEncoder) HttpBodyNamedResponse(ctx *gin.Context, resp *NamedHttpBodyResponse) error {
 	return gonic.EncodeHttpBody(ctx, ctx.Writer, resp.GetBody())
 }
-func (encoder responseBodyGonicEncodeResponse) HttpResponse(ctx *gin.Context, resp *http.HttpResponse) error {
+func (encoder responseBodyGonicResponseEncoder) HttpResponse(ctx *gin.Context, resp *http.HttpResponse) error {
 	return gonic.EncodeHttpResponse(ctx, ctx.Writer, resp)
 }

@@ -9,13 +9,13 @@ import (
 )
 
 func (generator *Generator) GenerateEncodeResponse(service *gen.Service, g *protogen.GeneratedFile) error {
-	g.P("type ", service.Unexported(service.EncodeResponseName()), " struct {")
+	g.P("type ", service.Unexported(service.ResponseEncoderName()), " struct {")
 	g.P("marshalOptions ", gen.ProtoJsonMarshalOptionsIdent)
 	g.P("unmarshalOptions ", gen.ProtoJsonUnmarshalOptionsIdent)
 	g.P("responseTransformer ", gen.ResponseTransformerIdent)
 	g.P("}")
 	for _, endpoint := range service.Endpoints {
-		g.P("func (encoder ", service.Unexported(service.EncodeResponseName()), ")", endpoint.Name(), "(ctx *", gen.GinContextIdent, ", resp *", endpoint.OutputGoIdent(), ") error {")
+		g.P("func (encoder ", service.Unexported(service.ResponseEncoderName()), ")", endpoint.Name(), "(ctx *", gen.GinContextIdent, ", resp *", endpoint.OutputGoIdent(), ") error {")
 		bodyParameter := endpoint.ResponseBody()
 		switch bodyParameter {
 		case "", "*":

@@ -25,7 +25,7 @@ func AppendUserGonicRoute[Router gin.IRoutes](router Router, service UserGonicSe
 		decoder: userGonicRequestDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		encoder: userGonicEncodeResponse{
+		encoder: userGonicResponseEncoder{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
@@ -46,7 +46,7 @@ func AppendUserGonicRoute[Router gin.IRoutes](router Router, service UserGonicSe
 type userGonicHandler struct {
 	service                 UserGonicService
 	decoder                 userGonicRequestDecoder
-	encoder                 userGonicEncodeResponse
+	encoder                 userGonicResponseEncoder
 	errorEncoder            gonic.ErrorEncoder
 	shouldFailFast          bool
 	onValidationErrCallback gonic.OnValidationErrCallback
@@ -310,27 +310,27 @@ func (decoder userGonicRequestDecoder) ListUser(ctx *gin.Context) (*ListUserRequ
 	return req, nil
 }
 
-type userGonicEncodeResponse struct {
+type userGonicResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
 	responseTransformer gonic.ResponseTransformer
 }
 
-func (encoder userGonicEncodeResponse) CreateUser(ctx *gin.Context, resp *CreateUserResponse) error {
+func (encoder userGonicResponseEncoder) CreateUser(ctx *gin.Context, resp *CreateUserResponse) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
-func (encoder userGonicEncodeResponse) DeleteUser(ctx *gin.Context, resp *DeleteUserResponse) error {
+func (encoder userGonicResponseEncoder) DeleteUser(ctx *gin.Context, resp *DeleteUserResponse) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
-func (encoder userGonicEncodeResponse) ModifyUser(ctx *gin.Context, resp *ModifyUserResponse) error {
+func (encoder userGonicResponseEncoder) ModifyUser(ctx *gin.Context, resp *ModifyUserResponse) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
-func (encoder userGonicEncodeResponse) UpdateUser(ctx *gin.Context, resp *UpdateUserResponse) error {
+func (encoder userGonicResponseEncoder) UpdateUser(ctx *gin.Context, resp *UpdateUserResponse) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
-func (encoder userGonicEncodeResponse) GetUser(ctx *gin.Context, resp *GetUserResponse) error {
+func (encoder userGonicResponseEncoder) GetUser(ctx *gin.Context, resp *GetUserResponse) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
-func (encoder userGonicEncodeResponse) ListUser(ctx *gin.Context, resp *ListUserResponse) error {
+func (encoder userGonicResponseEncoder) ListUser(ctx *gin.Context, resp *ListUserResponse) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }

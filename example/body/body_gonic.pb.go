@@ -28,7 +28,7 @@ func AppendBodyGonicRoute[Router gin.IRoutes](router Router, service BodyGonicSe
 		decoder: bodyGonicRequestDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		encoder: bodyGonicEncodeResponse{
+		encoder: bodyGonicResponseEncoder{
 			marshalOptions:      options.MarshalOptions(),
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
@@ -49,7 +49,7 @@ func AppendBodyGonicRoute[Router gin.IRoutes](router Router, service BodyGonicSe
 type bodyGonicHandler struct {
 	service                 BodyGonicService
 	decoder                 bodyGonicRequestDecoder
-	encoder                 bodyGonicEncodeResponse
+	encoder                 bodyGonicResponseEncoder
 	errorEncoder            gonic.ErrorEncoder
 	shouldFailFast          bool
 	onValidationErrCallback gonic.OnValidationErrCallback
@@ -291,27 +291,27 @@ func (decoder bodyGonicRequestDecoder) HttpRequest(ctx *gin.Context) (*http.Http
 	return req, nil
 }
 
-type bodyGonicEncodeResponse struct {
+type bodyGonicResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
 	responseTransformer gonic.ResponseTransformer
 }
 
-func (encoder bodyGonicEncodeResponse) StarBody(ctx *gin.Context, resp *Response) error {
+func (encoder bodyGonicResponseEncoder) StarBody(ctx *gin.Context, resp *Response) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
-func (encoder bodyGonicEncodeResponse) NamedBody(ctx *gin.Context, resp *Response) error {
+func (encoder bodyGonicResponseEncoder) NamedBody(ctx *gin.Context, resp *Response) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
-func (encoder bodyGonicEncodeResponse) NonBody(ctx *gin.Context, resp *Response) error {
+func (encoder bodyGonicResponseEncoder) NonBody(ctx *gin.Context, resp *Response) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
-func (encoder bodyGonicEncodeResponse) HttpBodyStarBody(ctx *gin.Context, resp *Response) error {
+func (encoder bodyGonicResponseEncoder) HttpBodyStarBody(ctx *gin.Context, resp *Response) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
-func (encoder bodyGonicEncodeResponse) HttpBodyNamedBody(ctx *gin.Context, resp *Response) error {
+func (encoder bodyGonicResponseEncoder) HttpBodyNamedBody(ctx *gin.Context, resp *Response) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
-func (encoder bodyGonicEncodeResponse) HttpRequest(ctx *gin.Context, resp *Response) error {
+func (encoder bodyGonicResponseEncoder) HttpRequest(ctx *gin.Context, resp *Response) error {
 	return gonic.EncodeResponse(ctx, ctx.Writer, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
 }
