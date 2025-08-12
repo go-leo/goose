@@ -3,4 +3,4 @@ build:
 	docker build -t goose-user:v1 .
 
 run:
-	docker run -d -p 8080:8080 goose-user:v1
+	docker run -d -p 8000:8000 goose-user:v1
