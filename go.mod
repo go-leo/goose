@@ -6,7 +6,7 @@ toolchain go1.23.11
 
 require (
 	github.com/gin-gonic/gin v1.10.1
-	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792
+	golang.org/x/exp v0.0.0-20250811191247-51f88131bc50
 	google.golang.org/genproto/googleapis/api v0.0.0-20250721164621-a45f3dfb1074
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250721164621-a45f3dfb1074
 	google.golang.org/protobuf v1.36.6
