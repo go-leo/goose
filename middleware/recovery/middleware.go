@@ -1,9 +1,10 @@
 package recovery
 
 import (
+	"net/http"
 	"runtime"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-leo/goose"
 	"golang.org/x/exp/slog"
 )
 
@@ -25,7 +26,7 @@ func (o *options) apply(opts ...Option) *options {
 	return o
 }
 
-type HandlerFunc func(ctx *gin.Context, p any)
+type HandlerFunc func(w http.ResponseWriter, r *http.Request, p any)
 
 // RecoveryHandler customizes the function for recovering from a panic.
 func RecoveryHandler(f HandlerFunc) Option {
@@ -34,22 +35,24 @@ func RecoveryHandler(f HandlerFunc) Option {
 	}
 }
 
-func Middleware(opts ...Option) gin.HandlerFunc {
+func Middleware(opts ...Option) goose.MiddlewareFunc {
 	opt := defaultOptions().apply(opts...)
-	return func(c *gin.Context) {
-		defer func() {
-			p := recover()
-			if p == nil {
-				return
-			}
-			opt.handler(c, p)
-		}()
-		c.Next()
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer func() {
+				p := recover()
+				if p == nil {
+					return
+				}
+				opt.handler(w, r, p)
+			}()
+			next.ServeHTTP(w, r)
+		})
 	}
 }
 
-func defaultHandler(ctx *gin.Context, p any) {
+func defaultHandler(w http.ResponseWriter, r *http.Request, p any) {
 	stack := make([]byte, 64<<10)
 	stack = stack[:runtime.Stack(stack, false)]
-	slog.ErrorContext(ctx, "panic caught", "panic", p, "stack", string(stack))
+	slog.ErrorContext(r.Context(), "panic caught", "panic", p, "stack", string(stack))
 }

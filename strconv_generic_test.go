@@ -1,4 +1,4 @@
-package gonic
+package goose
 
 import (
 	"reflect"

@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	gin "github.com/gin-gonic/gin"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	rpchttp "google.golang.org/genproto/googleapis/rpc/http"
 )
@@ -56,9 +55,8 @@ func (m *MockResponseBodyService) HttpResponse(ctx context.Context, req *Request
 // ---- Test Cases ----
 
 func TestOmittedResponse(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendResponseBodyGonicRoute(router, &MockResponseBodyService{})
+	router := http.NewServeMux()
+	router = AppendResponseBodyGooseRoute(router, &MockResponseBodyService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -79,9 +77,8 @@ func TestOmittedResponse(t *testing.T) {
 }
 
 func TestStarResponse(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendResponseBodyGonicRoute(router, &MockResponseBodyService{})
+	router := http.NewServeMux()
+	router = AppendResponseBodyGooseRoute(router, &MockResponseBodyService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -102,9 +99,8 @@ func TestStarResponse(t *testing.T) {
 }
 
 func TestNamedResponse(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendResponseBodyGonicRoute(router, &MockResponseBodyService{})
+	router := http.NewServeMux()
+	router = AppendResponseBodyGooseRoute(router, &MockResponseBodyService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -125,9 +121,8 @@ func TestNamedResponse(t *testing.T) {
 }
 
 func TestHttpBodyResponse(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendResponseBodyGonicRoute(router, &MockResponseBodyService{})
+	router := http.NewServeMux()
+	router = AppendResponseBodyGooseRoute(router, &MockResponseBodyService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -148,9 +143,8 @@ func TestHttpBodyResponse(t *testing.T) {
 }
 
 func TestHttpBodyNamedResponse(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendResponseBodyGonicRoute(router, &MockResponseBodyService{})
+	router := http.NewServeMux()
+	router = AppendResponseBodyGooseRoute(router, &MockResponseBodyService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -171,9 +165,8 @@ func TestHttpBodyNamedResponse(t *testing.T) {
 }
 
 func TestHttpResponse(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendResponseBodyGonicRoute(router, &MockResponseBodyService{})
+	router := http.NewServeMux()
+	router = AppendResponseBodyGooseRoute(router, &MockResponseBodyService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 

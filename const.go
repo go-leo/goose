@@ -1,4 +1,4 @@
-package gonic
+package goose
 
 const (
 	// ContentTypeKey is the key for the content type header.

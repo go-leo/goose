@@ -1,9 +1,8 @@
-# gonic
-gonic 参考 Google API 设计方案，通过定义 proto 文件，快速生成Go语言的Restful服务路由。
-
+# goose
+goose 参考 Google API 设计方案，通过定义 proto 文件，快速生成Go语言的Restful服务路由。
 
 # 路由规则
-gonic 底层基于 [gin-gonic/gin](github.com/gin-gonic/gin) 管理http路由。详细定义规则见[gin-gonic/gin](github.com/gin-gonic/gin)
+goose 底层基于 [Go 1.22 HTTP Router](https://go.dev/blog/routing-enhancements) 管理http路由。详细定义规则见[Enhanced ServeMux routing](https://github.com/golang/go/issues/61410)
 
 # 优点
 1. 基于proto文件，快速生成Restful服务路由
@@ -15,14 +14,14 @@ gonic 底层基于 [gin-gonic/gin](github.com/gin-gonic/gin) 管理http路由。
 
 # 安装
 ```
-go install github.com/go-leo/gonic/cmd/protoc-gen-gonic@latest
+go install github.com/go-leo/goose/cmd/protoc-gen-goose@latest
 ```
 
 # Example
 ```protobuf
 syntax = "proto3";
-package leo.gonic.example.user.v1;
-option go_package = "github.com/go-leo/gonic/example/user/v1;user";
+package leo.goose.example.user.v1;
+option go_package = "github.com/go-leo/goose/example/user/v1;user";
 
 import "google/api/annotations.proto";
 
@@ -157,14 +156,14 @@ protoc \
 --proto_path=../../ \
 --go_out=. \
 --go_opt=paths=source_relative \
---gonic_out=. \
---gonic_opt=paths=source_relative \
+--goose_out=. \
+--goose_opt=paths=source_relative \
 user/user.proto
 ```
 生成一下文件
 ```
 user
-├── user_gonic.pb.go
+├── user_goose.pb.go
 ├── user_test.go
 ├── user.pb.go
 └── user.proto
@@ -209,15 +208,16 @@ func (m *MockUserService) ListUser(ctx context.Context, req *ListUserRequest) (*
 
 # 创建Server
 ```go
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = user.AppendUserGonicRoute(router, &MockUserService{})
+func main() {
+	router := http.NewServeMux()
+	router = AppendUserGooseRoute(router, &MockUserService{})
 	server := http.Server{Addr: ":8000", Handler: router}
 	server.ListenAndServe()
+}
 ```
 
-更多示例见 [example](https://github.com/go-leo/gonic/tree/example/user/server)
+更多示例见 [example]https://github.com/go-leo/goose/tree/example/user/server
 
 # 子妹项目
+* [github.com/go-leo/gonic](https://github.com/go-leo/gonic) 使用 gin-gonic/gin 管理路由。
 * [github.com/go-leo/gorilla](https://github.com/go-leo/gorilla) 使用 gorilla/mux 管理路由。
-* [github.com/go-leo/goose](https://github.com/go-leo/goose) 使用 Go 1.22 HTTP Router 管理路由。

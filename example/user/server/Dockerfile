@@ -1,4 +1,4 @@
-FROM golang:1.23
+FROM golang:1.22
 
 LABEL org.opencontainers.image.authors="soyacen@outlook.com"
 

@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 
-	"github.com/go-leo/gonic/internal/gen"
+	"github.com/go-leo/goose/internal/gen"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -15,7 +15,7 @@ func (generator *Generator) GenerateEncodeResponse(service *gen.Service, g *prot
 	g.P("responseTransformer ", gen.ResponseTransformerIdent)
 	g.P("}")
 	for _, endpoint := range service.Endpoints {
-		g.P("func (encoder ", service.Unexported(service.ResponseEncoderName()), ")", endpoint.Name(), "(ctx *", gen.GinContextIdent, ", resp *", endpoint.OutputGoIdent(), ") error {")
+		g.P("func (encoder ", service.Unexported(service.ResponseEncoderName()), ")", endpoint.Name(), "(ctx ", gen.ContextIdent, ", w ", gen.ResponseWriterIdent, ", resp *", endpoint.OutputGoIdent(), ") error {")
 		bodyParameter := endpoint.ResponseBody()
 		switch bodyParameter {
 		case "", "*":
@@ -55,13 +55,13 @@ func (generator *Generator) GenerateEncodeResponse(service *gen.Service, g *prot
 }
 
 func (generator *Generator) PrintHttpBodyEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
-	g.P(append(append([]any{"return ", gen.EncodeHttpBodyIdent, "(ctx, ctx.Writer, "}, srcValue...), ")")...)
+	g.P(append(append([]any{"return ", gen.EncodeHttpBodyIdent, "(ctx, w, "}, srcValue...), ")")...)
 }
 
 func (generator *Generator) PrintHttpResponseEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
-	g.P(append(append([]any{"return ", gen.EncodeHttpResponseIdent, "(ctx, ctx.Writer, "}, srcValue...), ")")...)
+	g.P(append(append([]any{"return ", gen.EncodeHttpResponseIdent, "(ctx, w, "}, srcValue...), ")")...)
 }
 
 func (generator *Generator) PrintResponseEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
-	g.P(append(append([]any{"return ", gen.EncodeResponseIdent, "(ctx, ctx.Writer, "}, srcValue...), ", encoder.marshalOptions)")...)
+	g.P(append(append([]any{"return ", gen.EncodeResponseIdent, "(ctx, w, "}, srcValue...), ", encoder.marshalOptions)")...)
 }

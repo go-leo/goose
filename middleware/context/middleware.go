@@ -1,10 +1,13 @@
 package context
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
+	"net/http"
+
+	"github.com/go-leo/goose"
 )
 
-type ContextFunc func(ctx *gin.Context) *gin.Context
+type ContextFunc func(ctx context.Context) context.Context
 
 type options struct {
 	contextFunc ContextFunc
@@ -21,7 +24,7 @@ type Option func(o *options)
 
 func defaultOptions() *options {
 	return &options{
-		contextFunc: func(ctx *gin.Context) *gin.Context { return ctx },
+		contextFunc: func(ctx context.Context) context.Context { return ctx },
 	}
 }
 
@@ -31,11 +34,14 @@ func WithContextFunc(contextFunc ContextFunc) Option {
 	}
 }
 
-func Middleware(opts ...Option) gin.HandlerFunc {
+func Middleware(opts ...Option) goose.MiddlewareFunc {
 	opt := defaultOptions().apply(opts...)
-	return func(c *gin.Context) {
-		c = opt.contextFunc(c)
-		c.Request = c.Request.WithContext(c)
-		c.Next()
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			ctx = opt.contextFunc(ctx)
+			r = r.WithContext(ctx)
+			next.ServeHTTP(w, r)
+		})
 	}
 }

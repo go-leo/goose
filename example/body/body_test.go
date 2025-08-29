@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	rpchttp "google.golang.org/genproto/googleapis/rpc/http"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -54,9 +53,8 @@ func (m *MockBodyService) StarBody(ctx context.Context, request *BodyRequest) (*
 }
 
 func runServer(server *http.Server) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendBodyGonicRoute(router, &MockBodyService{})
+	router := http.NewServeMux()
+	router = AppendBodyGooseRoute(router, &MockBodyService{})
 	server.Addr = ":28080"
 	server.Handler = router
 	if err := server.ListenAndServe(); err != nil {
@@ -65,9 +63,8 @@ func runServer(server *http.Server) {
 }
 
 func TestStarBody(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendBodyGonicRoute(router, &MockBodyService{})
+	router := http.NewServeMux()
+	router = AppendBodyGooseRoute(router, &MockBodyService{})
 	server := httptest.NewServer(router)
 	url := server.URL + "/v1/star/body"
 	contentType := "application/json"
@@ -87,9 +84,8 @@ func TestStarBody(t *testing.T) {
 }
 
 func TestNamedBody(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendBodyGonicRoute(router, &MockBodyService{})
+	router := http.NewServeMux()
+	router = AppendBodyGooseRoute(router, &MockBodyService{})
 	server := httptest.NewServer(router)
 	url := server.URL + "/v1/star/body"
 	contentType := "application/json"
@@ -109,9 +105,8 @@ func TestNamedBody(t *testing.T) {
 }
 
 func TestNonBody(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendBodyGonicRoute(router, &MockBodyService{})
+	router := http.NewServeMux()
+	router = AppendBodyGooseRoute(router, &MockBodyService{})
 	server := httptest.NewServer(router)
 	url := server.URL + "/v1/star/body"
 	contentType := "application/json"
@@ -131,9 +126,8 @@ func TestNonBody(t *testing.T) {
 }
 
 func TestHttpBodyStarBody(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendBodyGonicRoute(router, &MockBodyService{})
+	router := http.NewServeMux()
+	router = AppendBodyGooseRoute(router, &MockBodyService{})
 	server := httptest.NewServer(router)
 	url := server.URL + "/v1/star/body"
 	contentType := "application/json"
@@ -153,9 +147,8 @@ func TestHttpBodyStarBody(t *testing.T) {
 }
 
 func TestHttpBodyNamedBody(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendBodyGonicRoute(router, &MockBodyService{})
+	router := http.NewServeMux()
+	router = AppendBodyGooseRoute(router, &MockBodyService{})
 	server := httptest.NewServer(router)
 	url := server.URL + "/v1/star/body"
 	contentType := "application/json"
@@ -175,9 +168,8 @@ func TestHttpBodyNamedBody(t *testing.T) {
 }
 
 func TestHttpRequest(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendBodyGonicRoute(router, &MockBodyService{})
+	router := http.NewServeMux()
+	router = AppendBodyGooseRoute(router, &MockBodyService{})
 	server := httptest.NewServer(router)
 	url := server.URL + "/v1/star/body"
 	contentType := "application/json"

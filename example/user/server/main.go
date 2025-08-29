@@ -4,8 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/go-leo/gonic/example/user"
+	"github.com/go-leo/goose/example/user"
 )
 
 type MockUserService struct{}
@@ -42,9 +41,8 @@ func (m *MockUserService) ListUser(ctx context.Context, req *user.ListUserReques
 }
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = user.AppendUserGonicRoute(router, &MockUserService{})
+	router := http.NewServeMux()
+	router = user.AppendUserGooseRoute(router, &MockUserService{})
 	server := http.Server{Addr: ":8000", Handler: router}
 	server.ListenAndServe()
 }

@@ -1,16 +1,15 @@
-package gonic
+package goose
 
 import (
+	"net/http"
 	"net/http/pprof"
-
-	"github.com/gin-gonic/gin"
 )
 
-func AppendPProf[Router gin.IRoutes](router Router) Router {
-	router.Any("/debug/pprof/", gin.WrapF(pprof.Index))
-	router.Any("/debug/pprof/cmdline", gin.WrapF(pprof.Cmdline))
-	router.Any("/debug/pprof/profile", gin.WrapF(pprof.Profile))
-	router.Any("/debug/pprof/symbol", gin.WrapF(pprof.Symbol))
-	router.Any("/debug/pprof/trace", gin.WrapF(pprof.Trace))
+func AppendPProf(router *http.ServeMux) *http.ServeMux {
+	router.HandleFunc("/debug/pprof/", pprof.Index)
+	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	router.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	return router
 }

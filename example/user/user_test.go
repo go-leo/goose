@@ -8,8 +8,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	gin "github.com/gin-gonic/gin"
 )
 
 // ---- Mock Service ----
@@ -48,9 +46,8 @@ func (m *MockUserService) ListUser(ctx context.Context, req *ListUserRequest) (*
 }
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendUserGonicRoute(router, &MockUserService{})
+	router := http.NewServeMux()
+	router = AppendUserGooseRoute(router, &MockUserService{})
 	server := http.Server{Addr: ":8000", Handler: router}
 	server.ListenAndServe()
 }
@@ -58,9 +55,8 @@ func main() {
 // ---- Test Cases ----
 
 func setupServer() *httptest.Server {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendUserGonicRoute(router, &MockUserService{})
+	router := http.NewServeMux()
+	router = AppendUserGooseRoute(router, &MockUserService{})
 	return httptest.NewServer(router)
 }
 

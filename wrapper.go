@@ -1,4 +1,4 @@
-package gonic
+package goose
 
 import "google.golang.org/protobuf/types/known/wrapperspb"
 

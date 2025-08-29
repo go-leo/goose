@@ -1,7 +1,6 @@
-package gonic
+package goose
 
 import (
-	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -20,7 +19,7 @@ type Options interface {
 	ResponseTransformer() ResponseTransformer
 
 	// Returns list of middlewares
-	Middlewares() []gin.HandlerFunc
+	Middlewares() []MiddlewareFunc
 
 	// Indicates if fail-fast mode is enabled
 	ShouldFailFast() bool
@@ -34,7 +33,7 @@ type options struct {
 	marshalOptions          protojson.MarshalOptions
 	errorEncoder            ErrorEncoder
 	responseTransformer     ResponseTransformer
-	middlewares             []gin.HandlerFunc
+	middlewares             []MiddlewareFunc
 	shouldFailFast          bool
 	onValidationErrCallback OnValidationErrCallback
 }
@@ -65,7 +64,7 @@ func (o *options) ResponseTransformer() ResponseTransformer {
 	return o.responseTransformer
 }
 
-func (o *options) Middlewares() []gin.HandlerFunc {
+func (o *options) Middlewares() []MiddlewareFunc {
 	return o.middlewares
 }
 
@@ -106,7 +105,7 @@ func WithResponseTransformer(transformer ResponseTransformer) Option {
 }
 
 // WithMiddlewares appends middlewares to the chain
-func WithMiddlewares(middlewares ...gin.HandlerFunc) Option {
+func WithMiddlewares(middlewares ...MiddlewareFunc) Option {
 	return func(o *options) {
 		o.middlewares = append(o.middlewares, middlewares...)
 	}
@@ -133,7 +132,7 @@ func NewOptions(opts ...Option) Options {
 		marshalOptions:          protojson.MarshalOptions{},
 		errorEncoder:            DefaultEncodeError,
 		responseTransformer:     DefaultTransformResponse,
-		middlewares:             []gin.HandlerFunc{},
+		middlewares:             []MiddlewareFunc{},
 		shouldFailFast:          false,
 		onValidationErrCallback: nil,
 	}

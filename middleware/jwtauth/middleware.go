@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-leo/goose"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -42,29 +42,31 @@ func Realm(realm string) Option {
 	}
 }
 
-func Middleware(keyFunc jwt.Keyfunc, opts ...Option) gin.HandlerFunc {
+func Middleware(keyFunc jwt.Keyfunc, opts ...Option) goose.MiddlewareFunc {
 	opt := defaultOptions().apply(opts...)
 	realm := "Basic realm=" + strconv.Quote(opt.realm)
-	return func(c *gin.Context) {
-		tokenString, found := parseAuthorization(c.GetHeader("Authorization"))
-		if !found {
-			c.Header("WWW-Authenticate", realm)
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-		token, err := jwt.Parse(tokenString, keyFunc)
-		if err != nil {
-			c.Header("WWW-Authenticate", realm)
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-		if !token.Valid {
-			c.Header("WWW-Authenticate", realm)
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), ctxKey{}, token))
-		c.Next()
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			tokenString, found := parseAuthorization(r.Header.Get("Authorization"))
+			if !found {
+				w.Header().Set("WWW-Authenticate", realm)
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			token, err := jwt.Parse(tokenString, keyFunc)
+			if err != nil {
+				w.Header().Set("WWW-Authenticate", realm)
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			if !token.Valid {
+				w.Header().Set("WWW-Authenticate", realm)
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			r = r.WithContext(context.WithValue(r.Context(), ctxKey{}, token))
+			next.ServeHTTP(w, r)
+		})
 	}
 }
 

@@ -1,10 +1,10 @@
-package gonic
+package goose
 
 import (
+	"net/http"
 	"net/url"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -549,24 +549,25 @@ func GetFloat64ValueSlice(form url.Values, key string) ([]*wrapperspb.DoubleValu
 	return WrapFloat64Slice(v), err
 }
 
-// FormFromParams converts gin.Params to url.Values (form data).
+// FormFromPath extracts specified key-value pairs from HTTP request path parameters
+// and constructs them into url.Values format.
 //
 // Parameters:
-//   - m: gin.Params - A collection of URL parameters from Gin framework.
-//     If nil is passed, the function returns nil.
+//
+//	r: HTTP request object used to retrieve path parameters
+//	keys: list of path parameter key names to extract
 //
 // Returns:
-//   - url.Values: A form data structure containing all key-value pairs from the input.
-//     Returns nil if input is nil.
-func FormFromParams(p gin.Params) url.Values {
-	if p == nil {
+//
+//	url.Values: form data containing specified path parameter key-value pairs,
+//	            returns nil if keys is nil
+func FormFromPath(r *http.Request, keys ...string) url.Values {
+	if keys == nil {
 		return nil
 	}
-
-	// Initialize form data and populate with all key-value pairs
 	form := url.Values{}
-	for _, item := range p {
-		form.Add(item.Key, item.Value)
+	for _, key := range keys {
+		form.Add(key, r.PathValue(key))
 	}
 	return form
 }

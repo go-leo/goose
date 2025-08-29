@@ -3,7 +3,7 @@ package server
 import (
 	"strconv"
 
-	"github.com/go-leo/gonic/internal/gen"
+	"github.com/go-leo/goose/internal/gen"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
@@ -20,13 +20,12 @@ func (generator *Generator) GenerateServices(service *gen.Service, g *protogen.G
 }
 
 func (generator *Generator) GenerateAppendServerFunc(service *gen.Service, g *protogen.GeneratedFile) error {
-	g.P("func ", service.AppendRouteName(), "[Router gin.IRoutes](router Router, service ", service.ServiceName(), ", opts ...", gen.OptionIdent, ") Router {")
+	g.P("func ", service.AppendRouteName(), "(router *", gen.RouterIdent, ", service ", service.ServiceName(), ", opts ...", gen.OptionIdent, ") ", "*", gen.RouterIdent, " {")
 	g.P("options := ", gen.NewOptionsIdent, "(opts...)")
 	g.P("handler :=  ", service.Unexported(service.HandlerName()), "{")
 	g.P("service: service,")
 	g.P("decoder: ", service.Unexported(service.RequestDecoderName()), "{")
 	g.P("unmarshalOptions: options.UnmarshalOptions(),")
-
 	g.P("},")
 	g.P("encoder: ", service.Unexported(service.ResponseEncoderName()), "{")
 	g.P("marshalOptions: options.MarshalOptions(),")
@@ -38,7 +37,7 @@ func (generator *Generator) GenerateAppendServerFunc(service *gen.Service, g *pr
 	g.P("onValidationErrCallback: options.OnValidationErrCallback(),")
 	g.P("}")
 	for _, endpoint := range service.Endpoints {
-		g.P("router.Match([]string{", strconv.Quote(endpoint.Method()), "}, ", strconv.Quote(endpoint.Path()), ", ", gen.ChainIdent, "(", "handler.", endpoint.Name(), "(), options.Middlewares()...)...)")
+		g.P("router.Handle(", strconv.Quote(endpoint.Method()+" "+endpoint.Path()), ", ", gen.ChainIdent, "(handler.", endpoint.Name(), "(), options.Middlewares()...))")
 	}
 	g.P("return router")
 	g.P("}")
@@ -57,24 +56,25 @@ func (generator *Generator) GenerateHandlers(service *gen.Service, g *protogen.G
 	g.P("}")
 	g.P()
 	for _, endpoint := range service.Endpoints {
-		g.P("func (h ", service.Unexported(service.HandlerName()), ")", endpoint.Name(), "()", gen.HandlerFuncIdent, " {")
-		g.P("return ", gen.HandlerFuncIdent, "(func(ctx *", gen.GinContextIdent, ") {")
-		g.P("in, err := h.decoder.", endpoint.Name(), "(ctx)")
+		g.P("func (h ", service.Unexported(service.HandlerName()), ")", endpoint.Name(), "()", gen.HttpHandlerIdent, " {")
+		g.P("return ", gen.HttpHandlerFuncIdent, "(func(writer ", gen.ResponseWriterIdent, ", request *", gen.RequestIdent, ") {")
+		g.P("ctx := request.Context()")
+		g.P("in, err := h.decoder.", endpoint.Name(), "(ctx, request)")
 		g.P("if err != nil {")
-		g.P("h.errorEncoder(ctx, err, ctx.Writer)")
+		g.P("h.errorEncoder(ctx, err, writer)")
 		g.P("return")
 		g.P("}")
 		g.P("if err := ", gen.ValidateRequestIdent, "(ctx, in, h.shouldFailFast, h.onValidationErrCallback)", "; err != nil {")
-		g.P("h.errorEncoder(ctx, err, ctx.Writer)")
+		g.P("h.errorEncoder(ctx, err, writer)")
 		g.P("return")
 		g.P("}")
 		g.P("out, err := h.service.", endpoint.Name(), "(ctx, in)")
 		g.P("if err != nil {")
-		g.P("h.errorEncoder(ctx, err, ctx.Writer)")
+		g.P("h.errorEncoder(ctx, err, writer)")
 		g.P("return")
 		g.P("}")
-		g.P("if err := h.encoder.", endpoint.Name(), "(ctx, out); err != nil {")
-		g.P("h.errorEncoder(ctx, err, ctx.Writer)")
+		g.P("if err := h.encoder.", endpoint.Name(), "(ctx, writer, out); err != nil {")
+		g.P("h.errorEncoder(ctx, err, writer)")
 		g.P("return")
 		g.P("}")
 		g.P("})")

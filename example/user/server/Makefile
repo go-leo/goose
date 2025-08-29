@@ -1,9 +1,9 @@
 
 build:
-	docker build -t gonic-user:v1 .
+	docker build -t goose-user:v1 .
 
 run:
-	docker run -d -p 8000:8000 gonic-user:v1
+	docker run -d -p 8000:8000 goose-user:v1
 
 create_user:
 	curl --location 'http://localhost:8000/v1/user' --header 'Content-Type: application/json' --data '{"name":"Leo"}'

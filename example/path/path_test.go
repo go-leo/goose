@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	gin "github.com/gin-gonic/gin"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 )
@@ -108,9 +107,8 @@ func (m *MockEnumPathService) EnumPath(ctx context.Context, req *EnumPathRequest
 // ---- Test Cases ----
 
 func TestBoolPath(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendBoolPathGonicRoute(router, &MockBoolPathService{})
+	router := http.NewServeMux()
+	router = AppendBoolPathGooseRoute(router, &MockBoolPathService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -131,9 +129,8 @@ func TestBoolPath(t *testing.T) {
 }
 
 func TestInt32Path(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendInt32PathGonicRoute(router, &MockInt32PathService{})
+	router := http.NewServeMux()
+	router = AppendInt32PathGooseRoute(router, &MockInt32PathService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -154,9 +151,8 @@ func TestInt32Path(t *testing.T) {
 }
 
 func TestInt64Path(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendInt64PathGonicRoute(router, &MockInt64PathService{})
+	router := http.NewServeMux()
+	router = AppendInt64PathGooseRoute(router, &MockInt64PathService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -177,9 +173,8 @@ func TestInt64Path(t *testing.T) {
 }
 
 func TestUint32Path(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendUint32PathGonicRoute(router, &MockUint32PathService{})
+	router := http.NewServeMux()
+	router = AppendUint32PathGooseRoute(router, &MockUint32PathService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -200,9 +195,8 @@ func TestUint32Path(t *testing.T) {
 }
 
 func TestUint64Path(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendUint64PathGonicRoute(router, &MockUint64PathService{})
+	router := http.NewServeMux()
+	router = AppendUint64PathGooseRoute(router, &MockUint64PathService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -223,9 +217,8 @@ func TestUint64Path(t *testing.T) {
 }
 
 func TestFloatPath(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendFloatPathGonicRoute(router, &MockFloatPathService{})
+	router := http.NewServeMux()
+	router = AppendFloatPathGooseRoute(router, &MockFloatPathService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -246,9 +239,8 @@ func TestFloatPath(t *testing.T) {
 }
 
 func TestDoublePath(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendDoublePathGonicRoute(router, &MockDoublePathService{})
+	router := http.NewServeMux()
+	router = AppendDoublePathGooseRoute(router, &MockDoublePathService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -269,13 +261,12 @@ func TestDoublePath(t *testing.T) {
 }
 
 func TestStringPath(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendStringPathGonicRoute(router, &MockStringPathService{})
+	router := http.NewServeMux()
+	router = AppendStringPathGooseRoute(router, &MockStringPathService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 
-	url := server.URL + "/v1/abc/def/ghi/ggg/hhh/jkl/mno/pqr/stu/vwx/yz"
+	url := server.URL + "/v1/abc/def/ghi/opq/rst/uv"
 	resp, err := http.Get(url)
 	if err != nil {
 		t.Fatal(err)
@@ -285,16 +276,15 @@ func TestStringPath(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := `{"string":"abc","optString":"def","wrapString":"ghi","catchAll":"/ggg/hhh/jkl/mno/pqr/stu/vwx/yz"}`
+	expected := `{"string":"abc","optString":"def","wrapString":"ghi","multiString":"opq/rst/uv"}`
 	if strings.ReplaceAll(string(body), " ", "") != strings.ReplaceAll(expected, " ", "") {
 		t.Fatalf("body is not equal: got %s, want %s", string(body), expected)
 	}
 }
 
 func TestEnumPath(t *testing.T) {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router = AppendEnumPathGonicRoute(router, &MockEnumPathService{})
+	router := http.NewServeMux()
+	router = AppendEnumPathGooseRoute(router, &MockEnumPathService{})
 	server := httptest.NewServer(router)
 	defer server.Close()
 

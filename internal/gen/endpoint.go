@@ -15,6 +15,7 @@ import (
 type Endpoint struct {
 	protoMethod *protogen.Method
 	httpRule    *annotations.HttpRule
+	route       *Pattern
 }
 
 func (e *Endpoint) Name() string {
@@ -155,7 +156,21 @@ func (e *Endpoint) ParseParameters() (*protogen.Message, *protogen.Field, []*pro
 }
 
 func (e *Endpoint) PathParameters() ([]string, error) {
-	return GetPathParameters(e.Path()), nil
+	values := make([]string, 0, len(e.route.segments))
+	for _, segment := range e.route.segments {
+		if segment.wild {
+			values = append(values, segment.s)
+		}
+	}
+	return values, nil
+}
+
+func (e *Endpoint) SetPattern(route *Pattern) {
+	e.route = route
+}
+
+func (e *Endpoint) Pattern() *Pattern {
+	return e.route
 }
 
 func (e *Endpoint) SetHttpRule() {

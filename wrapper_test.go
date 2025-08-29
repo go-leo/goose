@@ -1,5 +1,5 @@
 // wrapper_test.go
-package gonic
+package goose
 
 import (
 	"reflect"

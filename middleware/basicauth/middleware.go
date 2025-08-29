@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-leo/goose"
 )
 
 type ctxKey struct{}
@@ -50,19 +50,21 @@ func Realm(realm string) Option {
 	}
 }
 
-func Middleware(accounts Accounts, opts ...Option) gin.HandlerFunc {
+func Middleware(accounts Accounts, opts ...Option) goose.MiddlewareFunc {
 	opt := defaultOptions().apply(opts...)
 	realm := "Basic realm=" + strconv.Quote(opt.realm)
 	pairs := processAccounts(accounts)
-	return func(c *gin.Context) {
-		user, found := pairs.searchCredential(c.GetHeader("Authorization"))
-		if !found {
-			c.Header("WWW-Authenticate", realm)
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), ctxKey{}, user))
-		c.Next()
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			user, found := pairs.searchCredential(r.Header.Get("Authorization"))
+			if !found {
+				w.Header().Set("WWW-Authenticate", realm)
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			r = r.WithContext(context.WithValue(r.Context(), ctxKey{}, user))
+			next.ServeHTTP(w, r)
+		})
 	}
 }
 

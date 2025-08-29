@@ -1,4 +1,4 @@
-package gonic
+package goose
 
 import (
 	"math"
@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -314,50 +313,3 @@ func TestGetFloat64ValueSlice(t *testing.T) {
 	}
 }
 
-// TestFormFromParams_NilInput tests when input is nil.
-func TestFormFromParams_NilInput(t *testing.T) {
-	t.Run("nil input", func(t *testing.T) {
-		result := FormFromParams(nil)
-		if result != nil {
-			t.Errorf("FormFromParams(nil) = %v; want nil", result)
-		}
-	})
-	t.Run("empty params", func(t *testing.T) {
-		result := FormFromParams(gin.Params{})
-		if result == nil || len(result) != 0 {
-			t.Errorf("FormFromParams(empty params) = %v; want empty", result)
-		}
-	})
-
-	t.Run("single key-value pair", func(t *testing.T) {
-		params := gin.Params{
-			{Key: "name", Value: "Alice"},
-		}
-		result := FormFromParams(params)
-		if result == nil || result.Get("name") != "Alice" {
-			t.Errorf("FormFromParams(single key-value pair) = %v; want name=Alice", result)
-		}
-	})
-
-	t.Run("multiple key-value pairs", func(t *testing.T) {
-		params := gin.Params{
-			{Key: "name", Value: "Alice"},
-			{Key: "age", Value: "30"},
-		}
-		result := FormFromParams(params)
-		if result == nil || result.Get("name") != "Alice" || result.Get("age") != "30" {
-			t.Errorf("FormFromParams(multiple key-value pairs) = %v; want name=Alice, age=30", result)
-		}
-	})
-
-	t.Run("duplicate keys", func(t *testing.T) {
-		params := gin.Params{
-			{Key: "color", Value: "red"},
-			{Key: "color", Value: "blue"},
-		}
-		result := FormFromParams(params)
-		if result == nil || result["color"][0] != "red" || result["color"][1] != "blue" {
-			t.Errorf("FormFromParams(duplicate keys) = %v; want color=blue", result)
-		}
-	})
-}

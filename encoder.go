@@ -1,4 +1,4 @@
-package gonic
+package goose
 
 import (
 	"context"
@@ -79,7 +79,7 @@ func DefaultEncodeError(ctx context.Context, err error, w http.ResponseWriter) {
 	w.WriteHeader(code)
 	_, err = w.Write(body)
 	if err != nil {
-		log.Default().Println("gonic: response write error: ", err)
+		log.Default().Println("goose: response write error: ", err)
 	}
 }
 
