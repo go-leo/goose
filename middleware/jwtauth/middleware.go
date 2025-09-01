@@ -42,31 +42,29 @@ func Realm(realm string) Option {
 	}
 }
 
-func Middleware(keyFunc jwt.Keyfunc, opts ...Option) server.MiddlewareFunc {
+func Middleware(keyFunc jwt.Keyfunc, opts ...Option) server.Middleware {
 	opt := defaultOptions().apply(opts...)
 	realm := "Basic realm=" + strconv.Quote(opt.realm)
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			tokenString, found := parseAuthorization(r.Header.Get("Authorization"))
-			if !found {
-				w.Header().Set("WWW-Authenticate", realm)
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			token, err := jwt.Parse(tokenString, keyFunc)
-			if err != nil {
-				w.Header().Set("WWW-Authenticate", realm)
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			if !token.Valid {
-				w.Header().Set("WWW-Authenticate", realm)
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			r = r.WithContext(context.WithValue(r.Context(), ctxKey{}, token))
-			next.ServeHTTP(w, r)
-		})
+	return func(response http.ResponseWriter, request *http.Request, invoker http.HandlerFunc) {
+		tokenString, found := parseAuthorization(request.Header.Get("Authorization"))
+		if !found {
+			response.Header().Set("WWW-Authenticate", realm)
+			response.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		token, err := jwt.Parse(tokenString, keyFunc)
+		if err != nil {
+			response.Header().Set("WWW-Authenticate", realm)
+			response.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		if !token.Valid {
+			response.Header().Set("WWW-Authenticate", realm)
+			response.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		request = request.WithContext(context.WithValue(request.Context(), ctxKey{}, token))
+		invoker(response, request)
 	}
 }
 

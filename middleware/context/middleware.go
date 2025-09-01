@@ -34,14 +34,12 @@ func WithContextFunc(contextFunc ContextFunc) Option {
 	}
 }
 
-func Middleware(opts ...Option) server.MiddlewareFunc {
+func Middleware(opts ...Option) server.Middleware {
 	opt := defaultOptions().apply(opts...)
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-			ctx = opt.contextFunc(ctx)
-			r = r.WithContext(ctx)
-			next.ServeHTTP(w, r)
-		})
+	return func(response http.ResponseWriter, request *http.Request, invoker http.HandlerFunc) {
+		ctx := request.Context()
+		ctx = opt.contextFunc(ctx)
+		request = request.WithContext(ctx)
+		invoker(response, request)
 	}
 }

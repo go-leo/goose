@@ -35,24 +35,22 @@ func RecoveryHandler(f HandlerFunc) Option {
 	}
 }
 
-func Middleware(opts ...Option) server.MiddlewareFunc {
+func Middleware(opts ...Option) server.Middleware {
 	opt := defaultOptions().apply(opts...)
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			defer func() {
-				p := recover()
-				if p == nil {
-					return
-				}
-				opt.handler(w, r, p)
-			}()
-			next.ServeHTTP(w, r)
-		})
+	return func(response http.ResponseWriter, request *http.Request, invoker http.HandlerFunc) {
+		defer func() {
+			p := recover()
+			if p == nil {
+				return
+			}
+			opt.handler(response, request, p)
+		}()
+		invoker(response, request)
 	}
 }
 
-func defaultHandler(w http.ResponseWriter, r *http.Request, p any) {
+func defaultHandler(response http.ResponseWriter, request *http.Request, p any) {
 	stack := make([]byte, 64<<10)
 	stack = stack[:runtime.Stack(stack, false)]
-	slog.ErrorContext(r.Context(), "panic caught", "panic", p, "stack", string(stack))
+	slog.ErrorContext(request.Context(), "panic caught", "panic", p, "stack", string(stack))
 }

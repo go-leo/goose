@@ -50,21 +50,19 @@ func Realm(realm string) Option {
 	}
 }
 
-func Middleware(accounts Accounts, opts ...Option) server.MiddlewareFunc {
+func Middleware(accounts Accounts, opts ...Option) server.Middleware {
 	opt := defaultOptions().apply(opts...)
 	realm := "Basic realm=" + strconv.Quote(opt.realm)
 	pairs := processAccounts(accounts)
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user, found := pairs.searchCredential(r.Header.Get("Authorization"))
-			if !found {
-				w.Header().Set("WWW-Authenticate", realm)
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			r = r.WithContext(context.WithValue(r.Context(), ctxKey{}, user))
-			next.ServeHTTP(w, r)
-		})
+	return func(response http.ResponseWriter, request *http.Request, invoker http.HandlerFunc) {
+		user, found := pairs.searchCredential(request.Header.Get("Authorization"))
+		if !found {
+			response.Header().Set("WWW-Authenticate", realm)
+			response.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		request = request.WithContext(context.WithValue(request.Context(), ctxKey{}, user))
+		invoker(response, request)
 	}
 }
 

@@ -12,7 +12,6 @@ func (generator *Generator) GenerateEncodeResponse(service *gen.Service, g *prot
 	g.P("type ", service.Unexported(service.ResponseEncoderName()), " struct {")
 	g.P("marshalOptions ", gen.ProtoJsonMarshalOptionsIdent)
 	g.P("unmarshalOptions ", gen.ProtoJsonUnmarshalOptionsIdent)
-	g.P("responseTransformer ", gen.ResponseTransformerIdent)
 	g.P("}")
 	for _, endpoint := range service.Endpoints {
 		g.P("func (encoder ", service.Unexported(service.ResponseEncoderName()), ")", endpoint.Name(), "(ctx ", gen.ContextIdent, ", w ", gen.ResponseWriterIdent, ", resp *", endpoint.OutputGoIdent(), ") error {")
@@ -28,7 +27,7 @@ func (generator *Generator) GenerateEncodeResponse(service *gen.Service, g *prot
 				srcValue := []any{"resp"}
 				generator.PrintHttpResponseEncodeBlock(g, srcValue)
 			default:
-				srcValue := []any{"encoder.responseTransformer(ctx, resp)"}
+				srcValue := []any{"resp"}
 				generator.PrintResponseEncodeBlock(g, srcValue)
 			}
 		default:
@@ -43,7 +42,7 @@ func (generator *Generator) GenerateEncodeResponse(service *gen.Service, g *prot
 					srcValue := []any{"resp.Get", bodyField.GoName, "()"}
 					generator.PrintHttpBodyEncodeBlock(g, srcValue)
 				default:
-					srcValue := []any{"encoder.responseTransformer(ctx, resp.Get", bodyField.GoName, "())"}
+					srcValue := []any{"resp.Get", bodyField.GoName, "()"}
 					generator.PrintResponseEncodeBlock(g, srcValue)
 				}
 			}

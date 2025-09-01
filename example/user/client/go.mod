@@ -1,4 +1,4 @@
-module github.com/go-leo/goose/example/user/server
+module github.com/go-leo/goose/example/user/client
 
 go 1.22
 

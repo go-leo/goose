@@ -43,33 +43,31 @@ func WithLevel(level slog.Level) Option {
 	}
 }
 
-func Middleware(opts ...Option) server.MiddlewareFunc {
+func Middleware(opts ...Option) server.Middleware {
 	opt := defaultOptions().apply(opts...)
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if opt.loggerFactory == nil {
-				next.ServeHTTP(w, r)
-				return
-			}
-			startTime := time.Now()
-			sw := &statusCodeResponseWriter{ResponseWriter: w}
-			next.ServeHTTP(sw, r)
-			ctx := r.Context()
-			logger := opt.loggerFactory(ctx)
-			route := getRoute(r)
-			builder := new(builder).
-				System().
-				StartTime(startTime).
-				Deadline(ctx).
-				Method(r.Method).
-				URI(r.RequestURI).
-				Proto(r.Proto).
-				Host(r.Host).
-				RemoteAddress(r.RemoteAddr).
-				Status(sw.statusCode).
-				Latency(time.Since(startTime))
-			logger.LogAttrs(ctx, opt.level, route, builder.Build()...)
-		})
+	return func(response http.ResponseWriter, request *http.Request, invoker http.HandlerFunc) {
+		if opt.loggerFactory == nil {
+			invoker(response, request)
+			return
+		}
+		startTime := time.Now()
+		statusCodeResponse := &statusCodeResponseWriter{ResponseWriter: response}
+		invoker(statusCodeResponse, request)
+		ctx := request.Context()
+		logger := opt.loggerFactory(ctx)
+		route := getRoute(request)
+		builder := new(builder).
+			System().
+			StartTime(startTime).
+			Deadline(ctx).
+			Method(request.Method).
+			URI(request.RequestURI).
+			Proto(request.Proto).
+			Host(request.Host).
+			RemoteAddress(request.RemoteAddr).
+			Status(statusCodeResponse.statusCode).
+			Latency(time.Since(startTime))
+		logger.LogAttrs(ctx, opt.level, route, builder.Build()...)
 	}
 }
 

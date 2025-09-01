@@ -1,5 +1,5 @@
 # goose
-goose 参考 Google API 设计方案，通过定义 proto 文件，快速生成Go语言的Restful服务路由。
+goose 通过定义 proto 文件，快速生成基于 Go 1.22 HTTP Router 标准库的Restful服务路由。
 
 # 路由规则
 goose 底层基于 [Go 1.22 HTTP Router](https://go.dev/blog/routing-enhancements) 管理http路由。详细定义规则见[Enhanced ServeMux routing](https://github.com/golang/go/issues/61410)

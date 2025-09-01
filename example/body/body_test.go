@@ -3,13 +3,14 @@ package body
 import (
 	"context"
 	"encoding/json"
-	"io"
+	"errors"
+	"fmt"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
+	"time"
 
 	"google.golang.org/genproto/googleapis/api/httpbody"
+	httprpc "google.golang.org/genproto/googleapis/rpc/http"
 	rpchttp "google.golang.org/genproto/googleapis/rpc/http"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -52,138 +53,111 @@ func (m *MockBodyService) StarBody(ctx context.Context, request *BodyRequest) (*
 	return &Response{Message: request.GetMessage()}, nil
 }
 
-func runServer(server *http.Server) {
+func runServer(server *http.Server, port int) {
 	router := http.NewServeMux()
 	router = AppendBodyGooseRoute(router, &MockBodyService{})
-	server.Addr = ":28080"
+	server.Addr = fmt.Sprintf(":%d", port)
 	server.Handler = router
-	if err := server.ListenAndServe(); err != nil {
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		panic(err)
 	}
 }
 
+func newClient(port int) BodyGooseService {
+	return NewBodyGooseClient(fmt.Sprintf("http://localhost:%d", port))
+}
+
 func TestStarBody(t *testing.T) {
-	router := http.NewServeMux()
-	router = AppendBodyGooseRoute(router, &MockBodyService{})
-	server := httptest.NewServer(router)
-	url := server.URL + "/v1/star/body"
-	contentType := "application/json"
-	payload := strings.NewReader(`{"message": "hello"}`)
-	res, err := http.Post(url, contentType, payload)
+	server := new(http.Server)
+	defer server.Shutdown(context.Background())
+	go runServer(server, 38081)
+	time.Sleep(1 * time.Second)
+	client := newClient(38081)
+	resp, err := client.StarBody(context.Background(), &BodyRequest{Message: "hello"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(body) != `{"message":"hello"}` {
-		t.Fatal("body is not equal")
+	if resp.Message != "hello" {
+		t.Fatal("resp is not equal")
 	}
 }
 
 func TestNamedBody(t *testing.T) {
-	router := http.NewServeMux()
-	router = AppendBodyGooseRoute(router, &MockBodyService{})
-	server := httptest.NewServer(router)
-	url := server.URL + "/v1/star/body"
-	contentType := "application/json"
-	payload := strings.NewReader(`{"message": "hello"}`)
-	res, err := http.Post(url, contentType, payload)
+	server := new(http.Server)
+	defer server.Shutdown(context.Background())
+	go runServer(server, 38082)
+	client := newClient(38082)
+	resp, err := client.NamedBody(context.Background(), &NamedBodyRequest{Body: &NamedBodyRequest_Body{Message: "hello"}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(body) != `{"message":"hello"}` {
-		t.Fatal("body is not equal")
+	if resp.Message != "hello" {
+		t.Fatal("resp is not equal")
 	}
 }
 
 func TestNonBody(t *testing.T) {
-	router := http.NewServeMux()
-	router = AppendBodyGooseRoute(router, &MockBodyService{})
-	server := httptest.NewServer(router)
-	url := server.URL + "/v1/star/body"
-	contentType := "application/json"
-	payload := strings.NewReader(`{"message": "hello"}`)
-	res, err := http.Post(url, contentType, payload)
+	server := new(http.Server)
+	defer server.Shutdown(context.Background())
+	go runServer(server, 38083)
+	client := newClient(38083)
+	resp, err := client.NonBody(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(body) != `{"message":"hello"}` {
-		t.Fatal("body is not equal")
+	if resp.Message != "NonBody" {
+		t.Fatal("resp is not equal")
 	}
 }
 
 func TestHttpBodyStarBody(t *testing.T) {
-	router := http.NewServeMux()
-	router = AppendBodyGooseRoute(router, &MockBodyService{})
-	server := httptest.NewServer(router)
-	url := server.URL + "/v1/star/body"
-	contentType := "application/json"
-	payload := strings.NewReader(`{"message": "hello"}`)
-	res, err := http.Post(url, contentType, payload)
+	server := new(http.Server)
+	defer server.Shutdown(context.Background())
+	go runServer(server, 38084)
+	client := newClient(38084)
+	resp, err := client.HttpBodyStarBody(context.Background(), &httpbody.HttpBody{
+		Data: []byte(`{"message": "hello"}`),
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(body) != `{"message":"hello"}` {
-		t.Fatal("body is not equal")
+	if resp.Message != "hello" {
+		t.Fatal("resp is not equal")
 	}
 }
 
 func TestHttpBodyNamedBody(t *testing.T) {
-	router := http.NewServeMux()
-	router = AppendBodyGooseRoute(router, &MockBodyService{})
-	server := httptest.NewServer(router)
-	url := server.URL + "/v1/star/body"
-	contentType := "application/json"
-	payload := strings.NewReader(`{"message": "hello"}`)
-	res, err := http.Post(url, contentType, payload)
+	server := new(http.Server)
+	defer server.Shutdown(context.Background())
+	go runServer(server, 38085)
+	client := newClient(38085)
+	resp, err := client.HttpBodyNamedBody(context.Background(),
+		&HttpBodyRequest{
+			Body: &httpbody.HttpBody{
+				Data: []byte(`{"message": "hello"}`),
+			},
+		})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(body) != `{"message":"hello"}` {
-		t.Fatal("body is not equal")
+	if resp.Message != "hello" {
+		t.Fatal("resp is not equal")
 	}
 }
 
 func TestHttpRequest(t *testing.T) {
-	router := http.NewServeMux()
-	router = AppendBodyGooseRoute(router, &MockBodyService{})
-	server := httptest.NewServer(router)
-	url := server.URL + "/v1/star/body"
-	contentType := "application/json"
-	payload := strings.NewReader(`{"message": "hello"}`)
-	res, err := http.Post(url, contentType, payload)
+	server := new(http.Server)
+	defer server.Shutdown(context.Background())
+	go runServer(server, 38086)
+	client := newClient(38086)
+	resp, err := client.HttpRequest(context.Background(),
+		&httprpc.HttpRequest{
+			Body: []byte(`{"message": "hello"}`),
+		})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(body) != `{"message":"hello"}` {
-		t.Fatal("body is not equal")
+	if resp.Message != "hello" {
+		t.Fatal("resp is not equal")
 	}
 }

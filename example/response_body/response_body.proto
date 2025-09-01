@@ -51,9 +51,9 @@ message Request { string message = 1; }
 
 message Response { string message = 1; }
 
-message NamedHttpBodyResponse { google.api.HttpBody body = 1; }
-
 message NamedBodyResponse {
   message Body { string message = 1; }
   Body body = 1;
 }
+
+message NamedHttpBodyResponse { google.api.HttpBody body = 1; }

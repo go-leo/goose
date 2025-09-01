@@ -1,4 +1,4 @@
-package server
+package goose
 
 const (
 	// ContentTypeKey is the key for the content type header.
@@ -9,4 +9,7 @@ const (
 
 	// PlainContentType is the content type for plain text.
 	PlainContentType = "text/plain; charset=utf-8"
+
+	// ErrorKey is the key for the error header.
+	ErrorKey = "X-Goose-Error"
 )

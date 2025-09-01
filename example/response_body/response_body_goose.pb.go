@@ -3,21 +3,26 @@
 package response_body
 
 import (
+	bytes "bytes"
 	context "context"
+	errors "errors"
+	goose "github.com/go-leo/goose"
+	client "github.com/go-leo/goose/client"
 	server "github.com/go-leo/goose/server"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	http "google.golang.org/genproto/googleapis/rpc/http"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	http1 "net/http"
+	url "net/url"
 )
 
 type ResponseBodyGooseService interface {
-	OmittedResponse(ctx context.Context, request *Request) (*Response, error)
-	StarResponse(ctx context.Context, request *Request) (*Response, error)
-	NamedResponse(ctx context.Context, request *Request) (*NamedBodyResponse, error)
-	HttpBodyResponse(ctx context.Context, request *Request) (*httpbody.HttpBody, error)
-	HttpBodyNamedResponse(ctx context.Context, request *Request) (*NamedHttpBodyResponse, error)
-	HttpResponse(ctx context.Context, request *Request) (*http.HttpResponse, error)
+	OmittedResponse(ctx context.Context, req *Request) (*Response, error)
+	StarResponse(ctx context.Context, req *Request) (*Response, error)
+	NamedResponse(ctx context.Context, req *Request) (*NamedBodyResponse, error)
+	HttpBodyResponse(ctx context.Context, req *Request) (*httpbody.HttpBody, error)
+	HttpBodyNamedResponse(ctx context.Context, req *Request) (*NamedHttpBodyResponse, error)
+	HttpResponse(ctx context.Context, req *Request) (*http.HttpResponse, error)
 }
 
 func AppendResponseBodyGooseRoute(router *http1.ServeMux, service ResponseBodyGooseService, opts ...server.Option) *http1.ServeMux {
@@ -28,20 +33,20 @@ func AppendResponseBodyGooseRoute(router *http1.ServeMux, service ResponseBodyGo
 			unmarshalOptions: options.UnmarshalOptions(),
 		},
 		encoder: responseBodyGooseResponseEncoder{
-			marshalOptions:      options.MarshalOptions(),
-			unmarshalOptions:    options.UnmarshalOptions(),
-			responseTransformer: options.ResponseTransformer(),
+			marshalOptions:   options.MarshalOptions(),
+			unmarshalOptions: options.UnmarshalOptions(),
 		},
-		errorEncoder:            server.DefaultEncodeError,
+		errorEncoder:            options.ErrorEncoder(),
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
+		middleware:              server.Chain(options.Middlewares()...),
 	}
-	router.Handle("GET /v1/omitted/response", server.Chain(handler.OmittedResponse(), options.Middlewares()...))
-	router.Handle("GET /v1/star/response", server.Chain(handler.StarResponse(), options.Middlewares()...))
-	router.Handle("GET /v1/named/response", server.Chain(handler.NamedResponse(), options.Middlewares()...))
-	router.Handle("GET /v1/http/body/omitted/response", server.Chain(handler.HttpBodyResponse(), options.Middlewares()...))
-	router.Handle("GET /v1/http/body/named/response", server.Chain(handler.HttpBodyNamedResponse(), options.Middlewares()...))
-	router.Handle("GET /v1/http/response", server.Chain(handler.HttpResponse(), options.Middlewares()...))
+	router.Handle("GET /v1/omitted/response", http1.HandlerFunc(handler.OmittedResponse))
+	router.Handle("GET /v1/star/response", http1.HandlerFunc(handler.StarResponse))
+	router.Handle("GET /v1/named/response", http1.HandlerFunc(handler.NamedResponse))
+	router.Handle("GET /v1/http/body/omitted/response", http1.HandlerFunc(handler.HttpBodyResponse))
+	router.Handle("GET /v1/http/body/named/response", http1.HandlerFunc(handler.HttpBodyNamedResponse))
+	router.Handle("GET /v1/http/response", http1.HandlerFunc(handler.HttpResponse))
 	return router
 }
 
@@ -49,169 +54,176 @@ type responseBodyGooseHandler struct {
 	service                 ResponseBodyGooseService
 	decoder                 responseBodyGooseRequestDecoder
 	encoder                 responseBodyGooseResponseEncoder
-	errorEncoder            server.ErrorEncoder
+	errorEncoder            goose.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback server.OnValidationErrCallback
+	onValidationErrCallback goose.OnValidationErrCallback
+	middleware              server.Middleware
 }
 
-func (h responseBodyGooseHandler) OmittedResponse() http1.Handler {
-	return http1.HandlerFunc(func(writer http1.ResponseWriter, request *http1.Request) {
+func (h responseBodyGooseHandler) OmittedResponse(response http1.ResponseWriter, request *http1.Request) {
+	invoke := func(response http1.ResponseWriter, request *http1.Request) {
 		ctx := request.Context()
-		in, err := h.decoder.OmittedResponse(ctx, request)
+		req, err := h.decoder.OmittedResponse(ctx, request)
 		if err != nil {
-			h.errorEncoder(ctx, err, writer)
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
-			h.errorEncoder(ctx, err, writer)
+		if err := goose.ValidateRequest(ctx, req, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		out, err := h.service.OmittedResponse(ctx, in)
+		resp, err := h.service.OmittedResponse(ctx, req)
 		if err != nil {
-			h.errorEncoder(ctx, err, writer)
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		if err := h.encoder.OmittedResponse(ctx, writer, out); err != nil {
-			h.errorEncoder(ctx, err, writer)
+		if err := h.encoder.OmittedResponse(ctx, response, resp); err != nil {
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-	})
+	}
+	server.Invoke(h.middleware, response, request, invoke)
 }
 
-func (h responseBodyGooseHandler) StarResponse() http1.Handler {
-	return http1.HandlerFunc(func(writer http1.ResponseWriter, request *http1.Request) {
+func (h responseBodyGooseHandler) StarResponse(response http1.ResponseWriter, request *http1.Request) {
+	invoke := func(response http1.ResponseWriter, request *http1.Request) {
 		ctx := request.Context()
-		in, err := h.decoder.StarResponse(ctx, request)
+		req, err := h.decoder.StarResponse(ctx, request)
 		if err != nil {
-			h.errorEncoder(ctx, err, writer)
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
-			h.errorEncoder(ctx, err, writer)
+		if err := goose.ValidateRequest(ctx, req, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		out, err := h.service.StarResponse(ctx, in)
+		resp, err := h.service.StarResponse(ctx, req)
 		if err != nil {
-			h.errorEncoder(ctx, err, writer)
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		if err := h.encoder.StarResponse(ctx, writer, out); err != nil {
-			h.errorEncoder(ctx, err, writer)
+		if err := h.encoder.StarResponse(ctx, response, resp); err != nil {
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-	})
+	}
+	server.Invoke(h.middleware, response, request, invoke)
 }
 
-func (h responseBodyGooseHandler) NamedResponse() http1.Handler {
-	return http1.HandlerFunc(func(writer http1.ResponseWriter, request *http1.Request) {
+func (h responseBodyGooseHandler) NamedResponse(response http1.ResponseWriter, request *http1.Request) {
+	invoke := func(response http1.ResponseWriter, request *http1.Request) {
 		ctx := request.Context()
-		in, err := h.decoder.NamedResponse(ctx, request)
+		req, err := h.decoder.NamedResponse(ctx, request)
 		if err != nil {
-			h.errorEncoder(ctx, err, writer)
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
-			h.errorEncoder(ctx, err, writer)
+		if err := goose.ValidateRequest(ctx, req, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		out, err := h.service.NamedResponse(ctx, in)
+		resp, err := h.service.NamedResponse(ctx, req)
 		if err != nil {
-			h.errorEncoder(ctx, err, writer)
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		if err := h.encoder.NamedResponse(ctx, writer, out); err != nil {
-			h.errorEncoder(ctx, err, writer)
+		if err := h.encoder.NamedResponse(ctx, response, resp); err != nil {
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-	})
+	}
+	server.Invoke(h.middleware, response, request, invoke)
 }
 
-func (h responseBodyGooseHandler) HttpBodyResponse() http1.Handler {
-	return http1.HandlerFunc(func(writer http1.ResponseWriter, request *http1.Request) {
+func (h responseBodyGooseHandler) HttpBodyResponse(response http1.ResponseWriter, request *http1.Request) {
+	invoke := func(response http1.ResponseWriter, request *http1.Request) {
 		ctx := request.Context()
-		in, err := h.decoder.HttpBodyResponse(ctx, request)
+		req, err := h.decoder.HttpBodyResponse(ctx, request)
 		if err != nil {
-			h.errorEncoder(ctx, err, writer)
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
-			h.errorEncoder(ctx, err, writer)
+		if err := goose.ValidateRequest(ctx, req, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		out, err := h.service.HttpBodyResponse(ctx, in)
+		resp, err := h.service.HttpBodyResponse(ctx, req)
 		if err != nil {
-			h.errorEncoder(ctx, err, writer)
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		if err := h.encoder.HttpBodyResponse(ctx, writer, out); err != nil {
-			h.errorEncoder(ctx, err, writer)
+		if err := h.encoder.HttpBodyResponse(ctx, response, resp); err != nil {
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-	})
+	}
+	server.Invoke(h.middleware, response, request, invoke)
 }
 
-func (h responseBodyGooseHandler) HttpBodyNamedResponse() http1.Handler {
-	return http1.HandlerFunc(func(writer http1.ResponseWriter, request *http1.Request) {
+func (h responseBodyGooseHandler) HttpBodyNamedResponse(response http1.ResponseWriter, request *http1.Request) {
+	invoke := func(response http1.ResponseWriter, request *http1.Request) {
 		ctx := request.Context()
-		in, err := h.decoder.HttpBodyNamedResponse(ctx, request)
+		req, err := h.decoder.HttpBodyNamedResponse(ctx, request)
 		if err != nil {
-			h.errorEncoder(ctx, err, writer)
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
-			h.errorEncoder(ctx, err, writer)
+		if err := goose.ValidateRequest(ctx, req, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		out, err := h.service.HttpBodyNamedResponse(ctx, in)
+		resp, err := h.service.HttpBodyNamedResponse(ctx, req)
 		if err != nil {
-			h.errorEncoder(ctx, err, writer)
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		if err := h.encoder.HttpBodyNamedResponse(ctx, writer, out); err != nil {
-			h.errorEncoder(ctx, err, writer)
+		if err := h.encoder.HttpBodyNamedResponse(ctx, response, resp); err != nil {
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-	})
+	}
+	server.Invoke(h.middleware, response, request, invoke)
 }
 
-func (h responseBodyGooseHandler) HttpResponse() http1.Handler {
-	return http1.HandlerFunc(func(writer http1.ResponseWriter, request *http1.Request) {
+func (h responseBodyGooseHandler) HttpResponse(response http1.ResponseWriter, request *http1.Request) {
+	invoke := func(response http1.ResponseWriter, request *http1.Request) {
 		ctx := request.Context()
-		in, err := h.decoder.HttpResponse(ctx, request)
+		req, err := h.decoder.HttpResponse(ctx, request)
 		if err != nil {
-			h.errorEncoder(ctx, err, writer)
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
-			h.errorEncoder(ctx, err, writer)
+		if err := goose.ValidateRequest(ctx, req, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		out, err := h.service.HttpResponse(ctx, in)
+		resp, err := h.service.HttpResponse(ctx, req)
 		if err != nil {
-			h.errorEncoder(ctx, err, writer)
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-		if err := h.encoder.HttpResponse(ctx, writer, out); err != nil {
-			h.errorEncoder(ctx, err, writer)
+		if err := h.encoder.HttpResponse(ctx, response, resp); err != nil {
+			h.errorEncoder(ctx, err, response)
 			return
 		}
-	})
+	}
+	server.Invoke(h.middleware, response, request, invoke)
 }
 
 type responseBodyGooseRequestDecoder struct {
 	unmarshalOptions protojson.UnmarshalOptions
 }
 
-func (decoder responseBodyGooseRequestDecoder) OmittedResponse(ctx context.Context, r *http1.Request) (*Request, error) {
+func (decoder responseBodyGooseRequestDecoder) OmittedResponse(ctx context.Context, request *http1.Request) (*Request, error) {
 	req := &Request{}
-	ok, err := server.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, request, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	queries := r.URL.Query()
+	queries := request.URL.Query()
 	var queryErr error
 	req.Message = queries.Get("message")
 	if queryErr != nil {
@@ -219,16 +231,16 @@ func (decoder responseBodyGooseRequestDecoder) OmittedResponse(ctx context.Conte
 	}
 	return req, nil
 }
-func (decoder responseBodyGooseRequestDecoder) StarResponse(ctx context.Context, r *http1.Request) (*Request, error) {
+func (decoder responseBodyGooseRequestDecoder) StarResponse(ctx context.Context, request *http1.Request) (*Request, error) {
 	req := &Request{}
-	ok, err := server.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, request, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	queries := r.URL.Query()
+	queries := request.URL.Query()
 	var queryErr error
 	req.Message = queries.Get("message")
 	if queryErr != nil {
@@ -236,16 +248,16 @@ func (decoder responseBodyGooseRequestDecoder) StarResponse(ctx context.Context,
 	}
 	return req, nil
 }
-func (decoder responseBodyGooseRequestDecoder) NamedResponse(ctx context.Context, r *http1.Request) (*Request, error) {
+func (decoder responseBodyGooseRequestDecoder) NamedResponse(ctx context.Context, request *http1.Request) (*Request, error) {
 	req := &Request{}
-	ok, err := server.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, request, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	queries := r.URL.Query()
+	queries := request.URL.Query()
 	var queryErr error
 	req.Message = queries.Get("message")
 	if queryErr != nil {
@@ -253,16 +265,16 @@ func (decoder responseBodyGooseRequestDecoder) NamedResponse(ctx context.Context
 	}
 	return req, nil
 }
-func (decoder responseBodyGooseRequestDecoder) HttpBodyResponse(ctx context.Context, r *http1.Request) (*Request, error) {
+func (decoder responseBodyGooseRequestDecoder) HttpBodyResponse(ctx context.Context, request *http1.Request) (*Request, error) {
 	req := &Request{}
-	ok, err := server.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, request, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	queries := r.URL.Query()
+	queries := request.URL.Query()
 	var queryErr error
 	req.Message = queries.Get("message")
 	if queryErr != nil {
@@ -270,16 +282,16 @@ func (decoder responseBodyGooseRequestDecoder) HttpBodyResponse(ctx context.Cont
 	}
 	return req, nil
 }
-func (decoder responseBodyGooseRequestDecoder) HttpBodyNamedResponse(ctx context.Context, r *http1.Request) (*Request, error) {
+func (decoder responseBodyGooseRequestDecoder) HttpBodyNamedResponse(ctx context.Context, request *http1.Request) (*Request, error) {
 	req := &Request{}
-	ok, err := server.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, request, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	queries := r.URL.Query()
+	queries := request.URL.Query()
 	var queryErr error
 	req.Message = queries.Get("message")
 	if queryErr != nil {
@@ -287,16 +299,16 @@ func (decoder responseBodyGooseRequestDecoder) HttpBodyNamedResponse(ctx context
 	}
 	return req, nil
 }
-func (decoder responseBodyGooseRequestDecoder) HttpResponse(ctx context.Context, r *http1.Request) (*Request, error) {
+func (decoder responseBodyGooseRequestDecoder) HttpResponse(ctx context.Context, request *http1.Request) (*Request, error) {
 	req := &Request{}
-	ok, err := server.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, request, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	queries := r.URL.Query()
+	queries := request.URL.Query()
 	var queryErr error
 	req.Message = queries.Get("message")
 	if queryErr != nil {
@@ -306,19 +318,18 @@ func (decoder responseBodyGooseRequestDecoder) HttpResponse(ctx context.Context,
 }
 
 type responseBodyGooseResponseEncoder struct {
-	marshalOptions      protojson.MarshalOptions
-	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer server.ResponseTransformer
+	marshalOptions   protojson.MarshalOptions
+	unmarshalOptions protojson.UnmarshalOptions
 }
 
 func (encoder responseBodyGooseResponseEncoder) OmittedResponse(ctx context.Context, w http1.ResponseWriter, resp *Response) error {
-	return server.EncodeResponse(ctx, w, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
+	return server.EncodeResponse(ctx, w, resp, encoder.marshalOptions)
 }
 func (encoder responseBodyGooseResponseEncoder) StarResponse(ctx context.Context, w http1.ResponseWriter, resp *Response) error {
-	return server.EncodeResponse(ctx, w, encoder.responseTransformer(ctx, resp), encoder.marshalOptions)
+	return server.EncodeResponse(ctx, w, resp, encoder.marshalOptions)
 }
 func (encoder responseBodyGooseResponseEncoder) NamedResponse(ctx context.Context, w http1.ResponseWriter, resp *NamedBodyResponse) error {
-	return server.EncodeResponse(ctx, w, encoder.responseTransformer(ctx, resp.GetBody()), encoder.marshalOptions)
+	return server.EncodeResponse(ctx, w, resp.GetBody(), encoder.marshalOptions)
 }
 func (encoder responseBodyGooseResponseEncoder) HttpBodyResponse(ctx context.Context, w http1.ResponseWriter, resp *httpbody.HttpBody) error {
 	return server.EncodeHttpBody(ctx, w, resp)
@@ -328,4 +339,374 @@ func (encoder responseBodyGooseResponseEncoder) HttpBodyNamedResponse(ctx contex
 }
 func (encoder responseBodyGooseResponseEncoder) HttpResponse(ctx context.Context, w http1.ResponseWriter, resp *http.HttpResponse) error {
 	return server.EncodeHttpResponse(ctx, w, resp)
+}
+
+func NewResponseBodyGooseClient(target string, opts ...client.Option) ResponseBodyGooseService {
+	options := client.NewOptions(opts...)
+	client := &responseBodyGooseClient{
+		client: options.Client(),
+		encoder: responseBodyGooseRequestEncoder{
+			target:         target,
+			marshalOptions: options.MarshalOptions(),
+		},
+		decoder: responseBodyGooseResponseDecoder{
+			unmarshalOptions: options.UnmarshalOptions(),
+			errorDecoder:     options.ErrorDecoder(),
+			errorFactory:     options.ErrorFactory(),
+		},
+		shouldFailFast:          options.ShouldFailFast(),
+		onValidationErrCallback: options.OnValidationErrCallback(),
+		middleware:              client.Chain(options.Middlewares()...),
+	}
+	return client
+}
+
+type responseBodyGooseClient struct {
+	client                  *http1.Client
+	encoder                 responseBodyGooseRequestEncoder
+	decoder                 responseBodyGooseResponseDecoder
+	shouldFailFast          bool
+	onValidationErrCallback goose.OnValidationErrCallback
+	middleware              client.Middleware
+}
+
+func (c *responseBodyGooseClient) OmittedResponse(ctx context.Context, req *Request) (*Response, error) {
+	if err := goose.ValidateRequest(ctx, req, c.shouldFailFast, c.onValidationErrCallback); err != nil {
+		return nil, err
+	}
+	request, err := c.encoder.OmittedResponse(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.decoder.OmittedResponse(ctx, response)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *responseBodyGooseClient) StarResponse(ctx context.Context, req *Request) (*Response, error) {
+	if err := goose.ValidateRequest(ctx, req, c.shouldFailFast, c.onValidationErrCallback); err != nil {
+		return nil, err
+	}
+	request, err := c.encoder.StarResponse(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.decoder.StarResponse(ctx, response)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *responseBodyGooseClient) NamedResponse(ctx context.Context, req *Request) (*NamedBodyResponse, error) {
+	if err := goose.ValidateRequest(ctx, req, c.shouldFailFast, c.onValidationErrCallback); err != nil {
+		return nil, err
+	}
+	request, err := c.encoder.NamedResponse(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.decoder.NamedResponse(ctx, response)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *responseBodyGooseClient) HttpBodyResponse(ctx context.Context, req *Request) (*httpbody.HttpBody, error) {
+	if err := goose.ValidateRequest(ctx, req, c.shouldFailFast, c.onValidationErrCallback); err != nil {
+		return nil, err
+	}
+	request, err := c.encoder.HttpBodyResponse(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.decoder.HttpBodyResponse(ctx, response)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *responseBodyGooseClient) HttpBodyNamedResponse(ctx context.Context, req *Request) (*NamedHttpBodyResponse, error) {
+	if err := goose.ValidateRequest(ctx, req, c.shouldFailFast, c.onValidationErrCallback); err != nil {
+		return nil, err
+	}
+	request, err := c.encoder.HttpBodyNamedResponse(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.decoder.HttpBodyNamedResponse(ctx, response)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *responseBodyGooseClient) HttpResponse(ctx context.Context, req *Request) (*http.HttpResponse, error) {
+	if err := goose.ValidateRequest(ctx, req, c.shouldFailFast, c.onValidationErrCallback); err != nil {
+		return nil, err
+	}
+	request, err := c.encoder.HttpResponse(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.decoder.HttpResponse(ctx, response)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+type responseBodyGooseRequestEncoder struct {
+	marshalOptions protojson.MarshalOptions
+	target         string
+}
+
+func (encoder *responseBodyGooseRequestEncoder) OmittedResponse(ctx context.Context, req *Request) (*http1.Request, error) {
+	if req == nil {
+		return nil, errors.New("request is nil")
+	}
+	target, err := url.Parse(encoder.target)
+	if err != nil {
+		return nil, err
+	}
+	method := "GET"
+	header := http1.Header{}
+	var body bytes.Buffer
+	path := "/v1/omitted/response"
+	target.Path = path
+	queries := url.Values{}
+	queries["message"] = append(queries["message"], req.GetMessage())
+	target.RawQuery = queries.Encode()
+	request, err := http1.NewRequestWithContext(ctx, method, target.String(), &body)
+	if err != nil {
+		return nil, err
+	}
+	goose.CopyHeader(request.Header, header)
+	return request, nil
+}
+
+func (encoder *responseBodyGooseRequestEncoder) StarResponse(ctx context.Context, req *Request) (*http1.Request, error) {
+	if req == nil {
+		return nil, errors.New("request is nil")
+	}
+	target, err := url.Parse(encoder.target)
+	if err != nil {
+		return nil, err
+	}
+	method := "GET"
+	header := http1.Header{}
+	var body bytes.Buffer
+	path := "/v1/star/response"
+	target.Path = path
+	queries := url.Values{}
+	queries["message"] = append(queries["message"], req.GetMessage())
+	target.RawQuery = queries.Encode()
+	request, err := http1.NewRequestWithContext(ctx, method, target.String(), &body)
+	if err != nil {
+		return nil, err
+	}
+	goose.CopyHeader(request.Header, header)
+	return request, nil
+}
+
+func (encoder *responseBodyGooseRequestEncoder) NamedResponse(ctx context.Context, req *Request) (*http1.Request, error) {
+	if req == nil {
+		return nil, errors.New("request is nil")
+	}
+	target, err := url.Parse(encoder.target)
+	if err != nil {
+		return nil, err
+	}
+	method := "GET"
+	header := http1.Header{}
+	var body bytes.Buffer
+	path := "/v1/named/response"
+	target.Path = path
+	queries := url.Values{}
+	queries["message"] = append(queries["message"], req.GetMessage())
+	target.RawQuery = queries.Encode()
+	request, err := http1.NewRequestWithContext(ctx, method, target.String(), &body)
+	if err != nil {
+		return nil, err
+	}
+	goose.CopyHeader(request.Header, header)
+	return request, nil
+}
+
+func (encoder *responseBodyGooseRequestEncoder) HttpBodyResponse(ctx context.Context, req *Request) (*http1.Request, error) {
+	if req == nil {
+		return nil, errors.New("request is nil")
+	}
+	target, err := url.Parse(encoder.target)
+	if err != nil {
+		return nil, err
+	}
+	method := "GET"
+	header := http1.Header{}
+	var body bytes.Buffer
+	path := "/v1/http/body/omitted/response"
+	target.Path = path
+	queries := url.Values{}
+	queries["message"] = append(queries["message"], req.GetMessage())
+	target.RawQuery = queries.Encode()
+	request, err := http1.NewRequestWithContext(ctx, method, target.String(), &body)
+	if err != nil {
+		return nil, err
+	}
+	goose.CopyHeader(request.Header, header)
+	return request, nil
+}
+
+func (encoder *responseBodyGooseRequestEncoder) HttpBodyNamedResponse(ctx context.Context, req *Request) (*http1.Request, error) {
+	if req == nil {
+		return nil, errors.New("request is nil")
+	}
+	target, err := url.Parse(encoder.target)
+	if err != nil {
+		return nil, err
+	}
+	method := "GET"
+	header := http1.Header{}
+	var body bytes.Buffer
+	path := "/v1/http/body/named/response"
+	target.Path = path
+	queries := url.Values{}
+	queries["message"] = append(queries["message"], req.GetMessage())
+	target.RawQuery = queries.Encode()
+	request, err := http1.NewRequestWithContext(ctx, method, target.String(), &body)
+	if err != nil {
+		return nil, err
+	}
+	goose.CopyHeader(request.Header, header)
+	return request, nil
+}
+
+func (encoder *responseBodyGooseRequestEncoder) HttpResponse(ctx context.Context, req *Request) (*http1.Request, error) {
+	if req == nil {
+		return nil, errors.New("request is nil")
+	}
+	target, err := url.Parse(encoder.target)
+	if err != nil {
+		return nil, err
+	}
+	method := "GET"
+	header := http1.Header{}
+	var body bytes.Buffer
+	path := "/v1/http/response"
+	target.Path = path
+	queries := url.Values{}
+	queries["message"] = append(queries["message"], req.GetMessage())
+	target.RawQuery = queries.Encode()
+	request, err := http1.NewRequestWithContext(ctx, method, target.String(), &body)
+	if err != nil {
+		return nil, err
+	}
+	goose.CopyHeader(request.Header, header)
+	return request, nil
+}
+
+type responseBodyGooseResponseDecoder struct {
+	unmarshalOptions protojson.UnmarshalOptions
+	errorDecoder     goose.ErrorDecoder
+	errorFactory     goose.ErrorFactory
+}
+
+func (decoder *responseBodyGooseResponseDecoder) OmittedResponse(ctx context.Context, response *http1.Response) (*Response, error) {
+	if respErr, ok := decoder.errorDecoder(ctx, response, decoder.errorFactory); ok {
+		return nil, respErr
+	}
+	resp := &Response{}
+	if err := client.DecodeMessage(ctx, response, resp, decoder.unmarshalOptions); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (decoder *responseBodyGooseResponseDecoder) StarResponse(ctx context.Context, response *http1.Response) (*Response, error) {
+	if respErr, ok := decoder.errorDecoder(ctx, response, decoder.errorFactory); ok {
+		return nil, respErr
+	}
+	resp := &Response{}
+	if err := client.DecodeMessage(ctx, response, resp, decoder.unmarshalOptions); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (decoder *responseBodyGooseResponseDecoder) NamedResponse(ctx context.Context, response *http1.Response) (*NamedBodyResponse, error) {
+	if respErr, ok := decoder.errorDecoder(ctx, response, decoder.errorFactory); ok {
+		return nil, respErr
+	}
+	resp := &NamedBodyResponse{}
+	if resp.Body == nil {
+		resp.Body = &NamedBodyResponse_Body{}
+	}
+	if err := client.DecodeMessage(ctx, response, resp.Body, decoder.unmarshalOptions); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (decoder *responseBodyGooseResponseDecoder) HttpBodyResponse(ctx context.Context, response *http1.Response) (*httpbody.HttpBody, error) {
+	if respErr, ok := decoder.errorDecoder(ctx, response, decoder.errorFactory); ok {
+		return nil, respErr
+	}
+	resp := &httpbody.HttpBody{}
+	if err := client.DecodeHttpBody(ctx, response, resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (decoder *responseBodyGooseResponseDecoder) HttpBodyNamedResponse(ctx context.Context, response *http1.Response) (*NamedHttpBodyResponse, error) {
+	if respErr, ok := decoder.errorDecoder(ctx, response, decoder.errorFactory); ok {
+		return nil, respErr
+	}
+	resp := &NamedHttpBodyResponse{}
+	if resp.Body == nil {
+		resp.Body = &httpbody.HttpBody{}
+	}
+	if err := client.DecodeHttpBody(ctx, response, resp.Body); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (decoder *responseBodyGooseResponseDecoder) HttpResponse(ctx context.Context, response *http1.Response) (*http.HttpResponse, error) {
+	if respErr, ok := decoder.errorDecoder(ctx, response, decoder.errorFactory); ok {
+		return nil, respErr
+	}
+	resp := &http.HttpResponse{}
+	if err := client.DecodeHttpResponse(ctx, response, resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

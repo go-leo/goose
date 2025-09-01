@@ -4,27 +4,76 @@ import (
 	"net/http"
 )
 
-// MiddlewareFunc is a function which receives an http.Handler and returns another http.Handler.
-// Typically, the returned handler is a closure which does something with the http.ResponseWriter and http.Request passed
-// to it, and then calls the handler passed as parameter to the MiddlewareFunc.
-type MiddlewareFunc func(http.Handler) http.Handler
-
-// Chain applies a series of middleware functions to an HTTP handler in reverse order.
-// This allows middleware to be executed in the order they are provided (first middleware wraps the original handler,
-// subsequent middlewares wrap the previous chain).
+// Middleware defines a function type for HTTP middleware.
+// It receives an http.ResponseWriter, an http.Request, and the next handler (invoker) in the chain.
 //
 // Parameters:
-//   - handler: The base HTTP handler to be wrapped by middlewares.
-//   - middlewares: A variadic list of middleware functions to be applied. These will be executed
-//     in reverse order (last middleware in the list is applied first).
+//
+//	response - http.ResponseWriter to write the HTTP response
+//	request  - *http.Request containing the HTTP request data
+//	invoker  - http.HandlerFunc representing the next handler in the middleware chain
+type Middleware func(response http.ResponseWriter, request *http.Request, invoker http.HandlerFunc)
+
+// Chain combines multiple Middleware functions into a single Middleware.
+// If no middlewares are provided, returns nil.
+// If one middleware is provided, returns that middleware.
+// If multiple middlewares are provided, returns a middleware that executes them in chain.
+//
+// Parameters:
+//
+//	middlewares - variadic list of Middleware functions to chain together
 //
 // Returns:
-//   - http.Handler: The final handler wrapped by all middlewares in the chain.
-func Chain(handler http.Handler, middlewares ...MiddlewareFunc) http.Handler {
-	// Iterate through middlewares in reverse order to ensure proper chaining.
-	// Each middleware wraps the previous handler chain.
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		handler = middlewares[i](handler)
+//
+//	Middleware - a single middleware function representing the entire chain
+func Chain(middlewares ...Middleware) Middleware {
+	var mdw Middleware
+	if len(middlewares) == 0 {
+		mdw = nil
+	} else if len(middlewares) == 1 {
+		mdw = middlewares[0]
+	} else {
+		mdw = func(response http.ResponseWriter, request *http.Request, invoker http.HandlerFunc) {
+			middlewares[0](response, request, getInvoker(middlewares, 0, invoker))
+		}
 	}
-	return handler
+	return mdw
+}
+
+// getInvoker recursively builds the invoker chain for executing middlewares in sequence.
+//
+// Parameters:
+//
+//	interceptors   - slice of Middleware functions to be executed
+//	curr           - current index in the interceptors slice
+//	finalInvoker   - the final handler function to be executed after all middlewares
+//
+// Returns:
+//
+//	http.HandlerFunc - a handler function that continues the middleware chain
+func getInvoker(interceptors []Middleware, curr int, finalInvoker http.HandlerFunc) http.HandlerFunc {
+	if curr == len(interceptors)-1 {
+		return finalInvoker
+	}
+	return func(response http.ResponseWriter, request *http.Request) {
+		interceptors[curr+1](response, request, getInvoker(interceptors, curr+1, finalInvoker))
+	}
+}
+
+// Invoke wraps a Middleware and a final handler function into an http.Handler.
+// If the middleware is nil, directly calls the final handler.
+// Otherwise, executes the middleware chain ending with the final handler.
+//
+// Parameters:
+//
+//	middleware - Middleware function to execute (can be nil)
+//	invoke - http.HandlerFunc representing the final handler
+//	response - http.ResponseWriter to write the HTTP response
+//	request - *http.Request representing the incoming HTTP request
+func Invoke(middleware Middleware, response http.ResponseWriter, request *http.Request, invoke http.HandlerFunc) {
+	if middleware == nil {
+		invoke(response, request)
+		return
+	}
+	middleware(response, request, invoke)
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/go-leo/goose/cmd/protoc-gen-goose/client"
 	"github.com/go-leo/goose/cmd/protoc-gen-goose/server"
 	"github.com/go-leo/goose/internal/gen"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -16,7 +17,7 @@ var flags flag.FlagSet
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "--version" {
-		fmt.Fprintf(os.Stdout, "%v %v\n", filepath.Base(os.Args[0]), "v1.6.7")
+		fmt.Fprintf(os.Stdout, "%v %v\n", filepath.Base(os.Args[0]), "v1.6.8")
 		os.Exit(0)
 	}
 	options := &protogen.Options{ParamFunc: flags.Set}
@@ -62,7 +63,22 @@ func generate(plugin *protogen.Plugin) error {
 			if err := srvGen.GenerateEncodeResponse(service, g); err != nil {
 				return err
 			}
+
+			cliGen := new(client.Generator)
+			if err := cliGen.GenerateNewClient(service, g); err != nil {
+				return err
+			}
+			if err := cliGen.GenerateClient(service, g); err != nil {
+				return err
+			}
+			if err := cliGen.GenerateRequestEncoder(service, g); err != nil {
+				return err
+			}
+			if err := cliGen.GenerateResponseDecoder(service, g); err != nil {
+				return err
+			}
 		}
+
 	}
 	return nil
 }

@@ -1,4 +1,4 @@
-package server
+package goose
 
 import (
 	"net/http"

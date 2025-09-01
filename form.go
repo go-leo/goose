@@ -1,4 +1,4 @@
-package server
+package goose
 
 import (
 	"net/http"
@@ -571,3 +571,5 @@ func FormFromPath(r *http.Request, keys ...string) url.Values {
 	}
 	return form
 }
+
+

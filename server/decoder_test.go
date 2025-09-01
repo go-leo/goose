@@ -3,13 +3,13 @@ package server
 import (
 	"bytes"
 	"context"
-	"errors"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
 
+	"github.com/go-leo/goose"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	rpchttp "google.golang.org/genproto/googleapis/rpc/http"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -56,7 +56,7 @@ func TestDecodeHttpBody(t *testing.T) {
 	data := "abc"
 	r := &http.Request{
 		Body:   io.NopCloser(strings.NewReader(data)),
-		Header: http.Header{ContentTypeKey: []string{"application/test"}},
+		Header: http.Header{goose.ContentTypeKey: []string{"application/test"}},
 	}
 	body := &httpbody.HttpBody{}
 	err := DecodeHttpBody(context.Background(), r, body)
@@ -104,96 +104,4 @@ func TestDecodeHttpRequest(t *testing.T) {
 	if !foundBar || !foundBaz {
 		t.Errorf("req.Headers missing expected values: %v", req.Headers)
 	}
-}
-
-func TestDecodeForm(t *testing.T) {
-	form := url.Values{}
-	form.Set("a", "1")
-	getter := func(f url.Values, key string) (int, error) {
-		return 42, nil
-	}
-	v, err := DecodeForm(nil, form, "a", getter)
-	if err != nil || v != 42 {
-		t.Errorf("DecodeForm = %v, %v; want 42, nil", v, err)
-	}
-
-	preErr := errors.New("fail")
-	v, err = DecodeForm(preErr, form, "a", getter)
-	if err != preErr {
-		t.Errorf("DecodeForm with pre error = %v, %v; want pre error", v, err)
-	}
-}
-
-func TestBreak(t *testing.T) {
-	// pre error
-	pre := errors.New("fail")
-	f := breakOnError[int](pre)
-	v, err := f(func() (int, error) { return 1, nil })
-	if err != pre || v != 0 {
-		t.Errorf("Break with pre error = %v, %v; want 0, pre error", v, err)
-	}
-
-	// no error
-	f = breakOnError[int](nil)
-	v, err = f(func() (int, error) { return 42, nil })
-	if err != nil || v != 42 {
-		t.Errorf("Break = %v, %v; want 42, nil", v, err)
-	}
-
-	// function error
-	f = breakOnError[int](nil)
-	wantErr := errors.New("fail2")
-	v, err = f(func() (int, error) { return 0, wantErr })
-	if err != wantErr {
-		t.Errorf("Break = %v, %v; want 0, wantErr", v, err)
-	}
-}
-
-func TestDecodeForm_GenericType(t *testing.T) {
-	form := url.Values{}
-	form.Set("foo", "bar")
-	getter := func(f url.Values, key string) (string, error) {
-		return f.Get(key), nil
-	}
-	v, err := DecodeForm(nil, form, "foo", getter)
-	if err != nil || v != "bar" {
-		t.Errorf("DecodeForm generic = %v, %v; want bar, nil", v, err)
-	}
-}
-
-func TestDecodeForm_ErrorPropagation(t *testing.T) {
-	form := url.Values{}
-	getter := func(f url.Values, key string) (string, error) {
-		return "", errors.New("fail")
-	}
-	v, err := DecodeForm(nil, form, "foo", getter)
-	if err == nil {
-		t.Errorf("DecodeForm should propagate error")
-	}
-	if v != "" {
-		t.Errorf("DecodeForm should return zero value on error")
-	}
-}
-
-func TestDecodeForm_NilForm(t *testing.T) {
-	getter := func(f url.Values, key string) (string, error) {
-		if f == nil {
-			return "ok", nil
-		}
-		return "", nil
-	}
-	v, err := DecodeForm(nil, nil, "foo", getter)
-	if err != nil || v != "ok" {
-		t.Errorf("DecodeForm nil form = %v, %v; want ok, nil", v, err)
-	}
-}
-
-func TestFormGetter_Type(t *testing.T) {
-	var _ FormGetter[int]
-	var _ FormGetter[string]
-}
-
-func TestBreak_Type(t *testing.T) {
-	_ = breakOnError[int]
-	_ = breakOnError[string]
 }

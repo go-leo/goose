@@ -6,15 +6,11 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/go-leo/goose"
 	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 )
 
 func dummyErrorEncoder(ctx context.Context, err error, w http.ResponseWriter) {
-}
-
-func dummyResponseTransformer(ctx context.Context, resp proto.Message) proto.Message {
-	return nil
 }
 
 func TestOptions_Defaults(t *testing.T) {
@@ -30,22 +26,17 @@ func TestOptions_Defaults(t *testing.T) {
 	if opts.ErrorEncoder() == nil {
 		t.Errorf("default ErrorEncoder is nil")
 	}
-	if opts.ResponseTransformer() == nil {
-		t.Errorf("default ResponseTransformer is nil")
-	}
 }
 
 func TestOptions_WithOptions(t *testing.T) {
 	unmarshalOpt := protojson.UnmarshalOptions{AllowPartial: true}
 	marshalOpt := protojson.MarshalOptions{EmitUnpopulated: true}
-	var customErrorEncoder ErrorEncoder = dummyErrorEncoder
-	var customResponseTransformer ResponseTransformer = dummyResponseTransformer
+	var customErrorEncoder goose.ErrorEncoder = dummyErrorEncoder
 
 	opts := NewOptions(
-		WithUnmarshalOptions(unmarshalOpt),
-		WithMarshalOptions(marshalOpt),
-		WithErrorEncoder(customErrorEncoder),
-		WithResponseTransformer(customResponseTransformer),
+		UnmarshalOptions(unmarshalOpt),
+		MarshalOptions(marshalOpt),
+		ErrorEncoder(customErrorEncoder),
 	)
 
 	if !reflect.DeepEqual(opts.UnmarshalOptions(), unmarshalOpt) {
@@ -57,15 +48,12 @@ func TestOptions_WithOptions(t *testing.T) {
 	// if opts.ErrorEncoder() != customErrorEncoder {
 	// 	t.Errorf("ErrorEncoder not set correctly")
 	// }
-	// if opts.ResponseTransformer() != customResponseTransformer {
-	// 	t.Errorf("ResponseTransformer not set correctly")
-	// }
 }
 
 func TestOptions_Apply(t *testing.T) {
 	o := &options{}
-	opt1 := WithUnmarshalOptions(protojson.UnmarshalOptions{DiscardUnknown: true})
-	opt2 := WithMarshalOptions(protojson.MarshalOptions{UseProtoNames: true})
+	opt1 := UnmarshalOptions(protojson.UnmarshalOptions{DiscardUnknown: true})
+	opt2 := MarshalOptions(protojson.MarshalOptions{UseProtoNames: true})
 	o.apply(opt1, opt2)
 
 	if !o.unmarshalOptions.DiscardUnknown {
