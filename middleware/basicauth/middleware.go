@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-leo/goose"
+	"github.com/go-leo/goose/server"
 )
 
 type ctxKey struct{}
@@ -50,7 +50,7 @@ func Realm(realm string) Option {
 	}
 }
 
-func Middleware(accounts Accounts, opts ...Option) goose.MiddlewareFunc {
+func Middleware(accounts Accounts, opts ...Option) server.MiddlewareFunc {
 	opt := defaultOptions().apply(opts...)
 	realm := "Basic realm=" + strconv.Quote(opt.realm)
 	pairs := processAccounts(accounts)

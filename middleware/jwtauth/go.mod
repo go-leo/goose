@@ -3,7 +3,7 @@ module github.com/go-leo/goose/middleware/jwtauth
 go 1.22
 
 require (
-	github.com/go-leo/goose v0.0.0-20250728035153-430523d180f9
+	github.com/go-leo/goose v1.6.7
 	github.com/golang-jwt/jwt/v5 v5.2.2
 )
 
@@ -13,3 +13,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 )
+
+replace github.com/go-leo/goose v1.6.7 => ../../

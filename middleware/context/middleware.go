@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-leo/goose"
+	"github.com/go-leo/goose/server"
 )
 
 type ContextFunc func(ctx context.Context) context.Context
@@ -34,7 +34,7 @@ func WithContextFunc(contextFunc ContextFunc) Option {
 	}
 }
 
-func Middleware(opts ...Option) goose.MiddlewareFunc {
+func Middleware(opts ...Option) server.MiddlewareFunc {
 	opt := defaultOptions().apply(opts...)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

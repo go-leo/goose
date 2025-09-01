@@ -1,4 +1,4 @@
-package goose
+package server
 
 import (
 	"math"
@@ -312,4 +312,3 @@ func TestGetFloat64ValueSlice(t *testing.T) {
 		t.Errorf("GetFloat64ValueSlice(a) = %v, %v; want %v, nil", got, err, want)
 	}
 }
-

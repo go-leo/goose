@@ -1,4 +1,4 @@
-package goose
+package server
 
 import (
 	"google.golang.org/protobuf/encoding/protojson"

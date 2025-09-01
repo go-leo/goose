@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"runtime"
 
-	"github.com/go-leo/goose"
+	"github.com/go-leo/goose/server"
 	"golang.org/x/exp/slog"
 )
 
@@ -35,7 +35,7 @@ func RecoveryHandler(f HandlerFunc) Option {
 	}
 }
 
-func Middleware(opts ...Option) goose.MiddlewareFunc {
+func Middleware(opts ...Option) server.MiddlewareFunc {
 	opt := defaultOptions().apply(opts...)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

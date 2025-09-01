@@ -1,4 +1,4 @@
-package goose
+package server
 
 const (
 	// ContentTypeKey is the key for the content type header.

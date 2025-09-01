@@ -4,7 +4,7 @@ package path
 
 import (
 	context "context"
-	goose "github.com/go-leo/goose"
+	server "github.com/go-leo/goose/server"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
@@ -16,8 +16,8 @@ type BoolPathGooseService interface {
 	BoolPath(ctx context.Context, request *BoolPathRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendBoolPathGooseRoute(router *http.ServeMux, service BoolPathGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendBoolPathGooseRoute(router *http.ServeMux, service BoolPathGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := boolPathGooseHandler{
 		service: service,
 		decoder: boolPathGooseRequestDecoder{
@@ -28,11 +28,11 @@ func AppendBoolPathGooseRoute(router *http.ServeMux, service BoolPathGooseServic
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/{bool}/{opt_bool}/{wrap_bool}", goose.Chain(handler.BoolPath(), options.Middlewares()...))
+	router.Handle("GET /v1/{bool}/{opt_bool}/{wrap_bool}", server.Chain(handler.BoolPath(), options.Middlewares()...))
 	return router
 }
 
@@ -40,9 +40,9 @@ type boolPathGooseHandler struct {
 	service                 BoolPathGooseService
 	decoder                 boolPathGooseRequestDecoder
 	encoder                 boolPathGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h boolPathGooseHandler) BoolPath() http.Handler {
@@ -53,7 +53,7 @@ func (h boolPathGooseHandler) BoolPath() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -75,18 +75,18 @@ type boolPathGooseRequestDecoder struct {
 
 func (decoder boolPathGooseRequestDecoder) BoolPath(ctx context.Context, r *http.Request) (*BoolPathRequest, error) {
 	req := &BoolPathRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	vars := goose.FormFromPath(r, "bool", "opt_bool", "wrap_bool")
+	vars := server.FormFromPath(r, "bool", "opt_bool", "wrap_bool")
 	var varErr error
-	req.Bool, varErr = goose.DecodeForm[bool](varErr, vars, "bool", goose.GetBool)
-	req.OptBool, varErr = goose.DecodeForm[*bool](varErr, vars, "opt_bool", goose.GetBoolPtr)
-	req.WrapBool, varErr = goose.DecodeForm[*wrapperspb.BoolValue](varErr, vars, "wrap_bool", goose.GetBoolValue)
+	req.Bool, varErr = server.DecodeForm[bool](varErr, vars, "bool", server.GetBool)
+	req.OptBool, varErr = server.DecodeForm[*bool](varErr, vars, "opt_bool", server.GetBoolPtr)
+	req.WrapBool, varErr = server.DecodeForm[*wrapperspb.BoolValue](varErr, vars, "wrap_bool", server.GetBoolValue)
 	if varErr != nil {
 		return nil, varErr
 	}
@@ -96,19 +96,19 @@ func (decoder boolPathGooseRequestDecoder) BoolPath(ctx context.Context, r *http
 type boolPathGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder boolPathGooseResponseEncoder) BoolPath(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type Int32PathGooseService interface {
 	Int32Path(ctx context.Context, request *Int32PathRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendInt32PathGooseRoute(router *http.ServeMux, service Int32PathGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendInt32PathGooseRoute(router *http.ServeMux, service Int32PathGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := int32PathGooseHandler{
 		service: service,
 		decoder: int32PathGooseRequestDecoder{
@@ -119,11 +119,11 @@ func AppendInt32PathGooseRoute(router *http.ServeMux, service Int32PathGooseServ
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/{int32}/{sint32}/{sfixed32}/{opt_int32}/{opt_sint32}/{opt_sfixed32}/{wrap_int32}", goose.Chain(handler.Int32Path(), options.Middlewares()...))
+	router.Handle("GET /v1/{int32}/{sint32}/{sfixed32}/{opt_int32}/{opt_sint32}/{opt_sfixed32}/{wrap_int32}", server.Chain(handler.Int32Path(), options.Middlewares()...))
 	return router
 }
 
@@ -131,9 +131,9 @@ type int32PathGooseHandler struct {
 	service                 Int32PathGooseService
 	decoder                 int32PathGooseRequestDecoder
 	encoder                 int32PathGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h int32PathGooseHandler) Int32Path() http.Handler {
@@ -144,7 +144,7 @@ func (h int32PathGooseHandler) Int32Path() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -166,22 +166,22 @@ type int32PathGooseRequestDecoder struct {
 
 func (decoder int32PathGooseRequestDecoder) Int32Path(ctx context.Context, r *http.Request) (*Int32PathRequest, error) {
 	req := &Int32PathRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	vars := goose.FormFromPath(r, "int32", "sint32", "sfixed32", "opt_int32", "opt_sint32", "opt_sfixed32", "wrap_int32")
+	vars := server.FormFromPath(r, "int32", "sint32", "sfixed32", "opt_int32", "opt_sint32", "opt_sfixed32", "wrap_int32")
 	var varErr error
-	req.Int32, varErr = goose.DecodeForm[int32](varErr, vars, "int32", goose.GetInt32)
-	req.Sint32, varErr = goose.DecodeForm[int32](varErr, vars, "sint32", goose.GetInt32)
-	req.Sfixed32, varErr = goose.DecodeForm[int32](varErr, vars, "sfixed32", goose.GetInt32)
-	req.OptInt32, varErr = goose.DecodeForm[*int32](varErr, vars, "opt_int32", goose.GetInt32Ptr)
-	req.OptSint32, varErr = goose.DecodeForm[*int32](varErr, vars, "opt_sint32", goose.GetInt32Ptr)
-	req.OptSfixed32, varErr = goose.DecodeForm[*int32](varErr, vars, "opt_sfixed32", goose.GetInt32Ptr)
-	req.WrapInt32, varErr = goose.DecodeForm[*wrapperspb.Int32Value](varErr, vars, "wrap_int32", goose.GetInt32Value)
+	req.Int32, varErr = server.DecodeForm[int32](varErr, vars, "int32", server.GetInt32)
+	req.Sint32, varErr = server.DecodeForm[int32](varErr, vars, "sint32", server.GetInt32)
+	req.Sfixed32, varErr = server.DecodeForm[int32](varErr, vars, "sfixed32", server.GetInt32)
+	req.OptInt32, varErr = server.DecodeForm[*int32](varErr, vars, "opt_int32", server.GetInt32Ptr)
+	req.OptSint32, varErr = server.DecodeForm[*int32](varErr, vars, "opt_sint32", server.GetInt32Ptr)
+	req.OptSfixed32, varErr = server.DecodeForm[*int32](varErr, vars, "opt_sfixed32", server.GetInt32Ptr)
+	req.WrapInt32, varErr = server.DecodeForm[*wrapperspb.Int32Value](varErr, vars, "wrap_int32", server.GetInt32Value)
 	if varErr != nil {
 		return nil, varErr
 	}
@@ -191,19 +191,19 @@ func (decoder int32PathGooseRequestDecoder) Int32Path(ctx context.Context, r *ht
 type int32PathGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder int32PathGooseResponseEncoder) Int32Path(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type Int64PathGooseService interface {
 	Int64Path(ctx context.Context, request *Int64PathRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendInt64PathGooseRoute(router *http.ServeMux, service Int64PathGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendInt64PathGooseRoute(router *http.ServeMux, service Int64PathGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := int64PathGooseHandler{
 		service: service,
 		decoder: int64PathGooseRequestDecoder{
@@ -214,11 +214,11 @@ func AppendInt64PathGooseRoute(router *http.ServeMux, service Int64PathGooseServ
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/{int64}/{sint64}/{sfixed64}/{opt_int64}/{opt_sint64}/{opt_sfixed64}/{wrap_int64}", goose.Chain(handler.Int64Path(), options.Middlewares()...))
+	router.Handle("GET /v1/{int64}/{sint64}/{sfixed64}/{opt_int64}/{opt_sint64}/{opt_sfixed64}/{wrap_int64}", server.Chain(handler.Int64Path(), options.Middlewares()...))
 	return router
 }
 
@@ -226,9 +226,9 @@ type int64PathGooseHandler struct {
 	service                 Int64PathGooseService
 	decoder                 int64PathGooseRequestDecoder
 	encoder                 int64PathGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h int64PathGooseHandler) Int64Path() http.Handler {
@@ -239,7 +239,7 @@ func (h int64PathGooseHandler) Int64Path() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -261,22 +261,22 @@ type int64PathGooseRequestDecoder struct {
 
 func (decoder int64PathGooseRequestDecoder) Int64Path(ctx context.Context, r *http.Request) (*Int64PathRequest, error) {
 	req := &Int64PathRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	vars := goose.FormFromPath(r, "int64", "sint64", "sfixed64", "opt_int64", "opt_sint64", "opt_sfixed64", "wrap_int64")
+	vars := server.FormFromPath(r, "int64", "sint64", "sfixed64", "opt_int64", "opt_sint64", "opt_sfixed64", "wrap_int64")
 	var varErr error
-	req.Int64, varErr = goose.DecodeForm[int64](varErr, vars, "int64", goose.GetInt64)
-	req.Sint64, varErr = goose.DecodeForm[int64](varErr, vars, "sint64", goose.GetInt64)
-	req.Sfixed64, varErr = goose.DecodeForm[int64](varErr, vars, "sfixed64", goose.GetInt64)
-	req.OptInt64, varErr = goose.DecodeForm[*int64](varErr, vars, "opt_int64", goose.GetInt64Ptr)
-	req.OptSint64, varErr = goose.DecodeForm[*int64](varErr, vars, "opt_sint64", goose.GetInt64Ptr)
-	req.OptSfixed64, varErr = goose.DecodeForm[*int64](varErr, vars, "opt_sfixed64", goose.GetInt64Ptr)
-	req.WrapInt64, varErr = goose.DecodeForm[*wrapperspb.Int64Value](varErr, vars, "wrap_int64", goose.GetInt64Value)
+	req.Int64, varErr = server.DecodeForm[int64](varErr, vars, "int64", server.GetInt64)
+	req.Sint64, varErr = server.DecodeForm[int64](varErr, vars, "sint64", server.GetInt64)
+	req.Sfixed64, varErr = server.DecodeForm[int64](varErr, vars, "sfixed64", server.GetInt64)
+	req.OptInt64, varErr = server.DecodeForm[*int64](varErr, vars, "opt_int64", server.GetInt64Ptr)
+	req.OptSint64, varErr = server.DecodeForm[*int64](varErr, vars, "opt_sint64", server.GetInt64Ptr)
+	req.OptSfixed64, varErr = server.DecodeForm[*int64](varErr, vars, "opt_sfixed64", server.GetInt64Ptr)
+	req.WrapInt64, varErr = server.DecodeForm[*wrapperspb.Int64Value](varErr, vars, "wrap_int64", server.GetInt64Value)
 	if varErr != nil {
 		return nil, varErr
 	}
@@ -286,19 +286,19 @@ func (decoder int64PathGooseRequestDecoder) Int64Path(ctx context.Context, r *ht
 type int64PathGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder int64PathGooseResponseEncoder) Int64Path(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type Uint32PathGooseService interface {
 	Uint32Path(ctx context.Context, request *Uint32PathRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendUint32PathGooseRoute(router *http.ServeMux, service Uint32PathGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendUint32PathGooseRoute(router *http.ServeMux, service Uint32PathGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := uint32PathGooseHandler{
 		service: service,
 		decoder: uint32PathGooseRequestDecoder{
@@ -309,11 +309,11 @@ func AppendUint32PathGooseRoute(router *http.ServeMux, service Uint32PathGooseSe
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/{uint32}/{fixed32}/{opt_uint32}/{opt_fixed32}/{wrap_uint32}", goose.Chain(handler.Uint32Path(), options.Middlewares()...))
+	router.Handle("GET /v1/{uint32}/{fixed32}/{opt_uint32}/{opt_fixed32}/{wrap_uint32}", server.Chain(handler.Uint32Path(), options.Middlewares()...))
 	return router
 }
 
@@ -321,9 +321,9 @@ type uint32PathGooseHandler struct {
 	service                 Uint32PathGooseService
 	decoder                 uint32PathGooseRequestDecoder
 	encoder                 uint32PathGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h uint32PathGooseHandler) Uint32Path() http.Handler {
@@ -334,7 +334,7 @@ func (h uint32PathGooseHandler) Uint32Path() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -356,20 +356,20 @@ type uint32PathGooseRequestDecoder struct {
 
 func (decoder uint32PathGooseRequestDecoder) Uint32Path(ctx context.Context, r *http.Request) (*Uint32PathRequest, error) {
 	req := &Uint32PathRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	vars := goose.FormFromPath(r, "uint32", "fixed32", "opt_uint32", "opt_fixed32", "wrap_uint32")
+	vars := server.FormFromPath(r, "uint32", "fixed32", "opt_uint32", "opt_fixed32", "wrap_uint32")
 	var varErr error
-	req.Uint32, varErr = goose.DecodeForm[uint32](varErr, vars, "uint32", goose.GetUint32)
-	req.Fixed32, varErr = goose.DecodeForm[uint32](varErr, vars, "fixed32", goose.GetUint32)
-	req.OptUint32, varErr = goose.DecodeForm[*uint32](varErr, vars, "opt_uint32", goose.GetUint32Ptr)
-	req.OptFixed32, varErr = goose.DecodeForm[*uint32](varErr, vars, "opt_fixed32", goose.GetUint32Ptr)
-	req.WrapUint32, varErr = goose.DecodeForm[*wrapperspb.UInt32Value](varErr, vars, "wrap_uint32", goose.GetUint32Value)
+	req.Uint32, varErr = server.DecodeForm[uint32](varErr, vars, "uint32", server.GetUint32)
+	req.Fixed32, varErr = server.DecodeForm[uint32](varErr, vars, "fixed32", server.GetUint32)
+	req.OptUint32, varErr = server.DecodeForm[*uint32](varErr, vars, "opt_uint32", server.GetUint32Ptr)
+	req.OptFixed32, varErr = server.DecodeForm[*uint32](varErr, vars, "opt_fixed32", server.GetUint32Ptr)
+	req.WrapUint32, varErr = server.DecodeForm[*wrapperspb.UInt32Value](varErr, vars, "wrap_uint32", server.GetUint32Value)
 	if varErr != nil {
 		return nil, varErr
 	}
@@ -379,19 +379,19 @@ func (decoder uint32PathGooseRequestDecoder) Uint32Path(ctx context.Context, r *
 type uint32PathGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder uint32PathGooseResponseEncoder) Uint32Path(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type Uint64PathGooseService interface {
 	Uint64Path(ctx context.Context, request *Uint64PathRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendUint64PathGooseRoute(router *http.ServeMux, service Uint64PathGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendUint64PathGooseRoute(router *http.ServeMux, service Uint64PathGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := uint64PathGooseHandler{
 		service: service,
 		decoder: uint64PathGooseRequestDecoder{
@@ -402,11 +402,11 @@ func AppendUint64PathGooseRoute(router *http.ServeMux, service Uint64PathGooseSe
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/{uint64}/{fixed64}/{opt_uint64}/{opt_fixed64}/{wrap_uint64}", goose.Chain(handler.Uint64Path(), options.Middlewares()...))
+	router.Handle("GET /v1/{uint64}/{fixed64}/{opt_uint64}/{opt_fixed64}/{wrap_uint64}", server.Chain(handler.Uint64Path(), options.Middlewares()...))
 	return router
 }
 
@@ -414,9 +414,9 @@ type uint64PathGooseHandler struct {
 	service                 Uint64PathGooseService
 	decoder                 uint64PathGooseRequestDecoder
 	encoder                 uint64PathGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h uint64PathGooseHandler) Uint64Path() http.Handler {
@@ -427,7 +427,7 @@ func (h uint64PathGooseHandler) Uint64Path() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -449,20 +449,20 @@ type uint64PathGooseRequestDecoder struct {
 
 func (decoder uint64PathGooseRequestDecoder) Uint64Path(ctx context.Context, r *http.Request) (*Uint64PathRequest, error) {
 	req := &Uint64PathRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	vars := goose.FormFromPath(r, "uint64", "fixed64", "opt_uint64", "opt_fixed64", "wrap_uint64")
+	vars := server.FormFromPath(r, "uint64", "fixed64", "opt_uint64", "opt_fixed64", "wrap_uint64")
 	var varErr error
-	req.Uint64, varErr = goose.DecodeForm[uint64](varErr, vars, "uint64", goose.GetUint64)
-	req.Fixed64, varErr = goose.DecodeForm[uint64](varErr, vars, "fixed64", goose.GetUint64)
-	req.OptUint64, varErr = goose.DecodeForm[*uint64](varErr, vars, "opt_uint64", goose.GetUint64Ptr)
-	req.OptFixed64, varErr = goose.DecodeForm[*uint64](varErr, vars, "opt_fixed64", goose.GetUint64Ptr)
-	req.WrapUint64, varErr = goose.DecodeForm[*wrapperspb.UInt64Value](varErr, vars, "wrap_uint64", goose.GetUint64Value)
+	req.Uint64, varErr = server.DecodeForm[uint64](varErr, vars, "uint64", server.GetUint64)
+	req.Fixed64, varErr = server.DecodeForm[uint64](varErr, vars, "fixed64", server.GetUint64)
+	req.OptUint64, varErr = server.DecodeForm[*uint64](varErr, vars, "opt_uint64", server.GetUint64Ptr)
+	req.OptFixed64, varErr = server.DecodeForm[*uint64](varErr, vars, "opt_fixed64", server.GetUint64Ptr)
+	req.WrapUint64, varErr = server.DecodeForm[*wrapperspb.UInt64Value](varErr, vars, "wrap_uint64", server.GetUint64Value)
 	if varErr != nil {
 		return nil, varErr
 	}
@@ -472,19 +472,19 @@ func (decoder uint64PathGooseRequestDecoder) Uint64Path(ctx context.Context, r *
 type uint64PathGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder uint64PathGooseResponseEncoder) Uint64Path(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type FloatPathGooseService interface {
 	FloatPath(ctx context.Context, request *FloatPathRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendFloatPathGooseRoute(router *http.ServeMux, service FloatPathGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendFloatPathGooseRoute(router *http.ServeMux, service FloatPathGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := floatPathGooseHandler{
 		service: service,
 		decoder: floatPathGooseRequestDecoder{
@@ -495,11 +495,11 @@ func AppendFloatPathGooseRoute(router *http.ServeMux, service FloatPathGooseServ
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/{float}/{opt_float}/{wrap_float}", goose.Chain(handler.FloatPath(), options.Middlewares()...))
+	router.Handle("GET /v1/{float}/{opt_float}/{wrap_float}", server.Chain(handler.FloatPath(), options.Middlewares()...))
 	return router
 }
 
@@ -507,9 +507,9 @@ type floatPathGooseHandler struct {
 	service                 FloatPathGooseService
 	decoder                 floatPathGooseRequestDecoder
 	encoder                 floatPathGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h floatPathGooseHandler) FloatPath() http.Handler {
@@ -520,7 +520,7 @@ func (h floatPathGooseHandler) FloatPath() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -542,18 +542,18 @@ type floatPathGooseRequestDecoder struct {
 
 func (decoder floatPathGooseRequestDecoder) FloatPath(ctx context.Context, r *http.Request) (*FloatPathRequest, error) {
 	req := &FloatPathRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	vars := goose.FormFromPath(r, "float", "opt_float", "wrap_float")
+	vars := server.FormFromPath(r, "float", "opt_float", "wrap_float")
 	var varErr error
-	req.Float, varErr = goose.DecodeForm[float32](varErr, vars, "float", goose.GetFloat32)
-	req.OptFloat, varErr = goose.DecodeForm[*float32](varErr, vars, "opt_float", goose.GetFloat32Ptr)
-	req.WrapFloat, varErr = goose.DecodeForm[*wrapperspb.FloatValue](varErr, vars, "wrap_float", goose.GetFloat32Value)
+	req.Float, varErr = server.DecodeForm[float32](varErr, vars, "float", server.GetFloat32)
+	req.OptFloat, varErr = server.DecodeForm[*float32](varErr, vars, "opt_float", server.GetFloat32Ptr)
+	req.WrapFloat, varErr = server.DecodeForm[*wrapperspb.FloatValue](varErr, vars, "wrap_float", server.GetFloat32Value)
 	if varErr != nil {
 		return nil, varErr
 	}
@@ -563,19 +563,19 @@ func (decoder floatPathGooseRequestDecoder) FloatPath(ctx context.Context, r *ht
 type floatPathGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder floatPathGooseResponseEncoder) FloatPath(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type DoublePathGooseService interface {
 	DoublePath(ctx context.Context, request *DoublePathRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendDoublePathGooseRoute(router *http.ServeMux, service DoublePathGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendDoublePathGooseRoute(router *http.ServeMux, service DoublePathGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := doublePathGooseHandler{
 		service: service,
 		decoder: doublePathGooseRequestDecoder{
@@ -586,11 +586,11 @@ func AppendDoublePathGooseRoute(router *http.ServeMux, service DoublePathGooseSe
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/{double}/{opt_double}/{wrap_double}", goose.Chain(handler.DoublePath(), options.Middlewares()...))
+	router.Handle("GET /v1/{double}/{opt_double}/{wrap_double}", server.Chain(handler.DoublePath(), options.Middlewares()...))
 	return router
 }
 
@@ -598,9 +598,9 @@ type doublePathGooseHandler struct {
 	service                 DoublePathGooseService
 	decoder                 doublePathGooseRequestDecoder
 	encoder                 doublePathGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h doublePathGooseHandler) DoublePath() http.Handler {
@@ -611,7 +611,7 @@ func (h doublePathGooseHandler) DoublePath() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -633,18 +633,18 @@ type doublePathGooseRequestDecoder struct {
 
 func (decoder doublePathGooseRequestDecoder) DoublePath(ctx context.Context, r *http.Request) (*DoublePathRequest, error) {
 	req := &DoublePathRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	vars := goose.FormFromPath(r, "double", "opt_double", "wrap_double")
+	vars := server.FormFromPath(r, "double", "opt_double", "wrap_double")
 	var varErr error
-	req.Double, varErr = goose.DecodeForm[float64](varErr, vars, "double", goose.GetFloat64)
-	req.OptDouble, varErr = goose.DecodeForm[*float64](varErr, vars, "opt_double", goose.GetFloat64Ptr)
-	req.WrapDouble, varErr = goose.DecodeForm[*wrapperspb.DoubleValue](varErr, vars, "wrap_double", goose.GetFloat64Value)
+	req.Double, varErr = server.DecodeForm[float64](varErr, vars, "double", server.GetFloat64)
+	req.OptDouble, varErr = server.DecodeForm[*float64](varErr, vars, "opt_double", server.GetFloat64Ptr)
+	req.WrapDouble, varErr = server.DecodeForm[*wrapperspb.DoubleValue](varErr, vars, "wrap_double", server.GetFloat64Value)
 	if varErr != nil {
 		return nil, varErr
 	}
@@ -654,19 +654,19 @@ func (decoder doublePathGooseRequestDecoder) DoublePath(ctx context.Context, r *
 type doublePathGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder doublePathGooseResponseEncoder) DoublePath(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type StringPathGooseService interface {
 	StringPath(ctx context.Context, request *StringPathRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendStringPathGooseRoute(router *http.ServeMux, service StringPathGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendStringPathGooseRoute(router *http.ServeMux, service StringPathGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := stringPathGooseHandler{
 		service: service,
 		decoder: stringPathGooseRequestDecoder{
@@ -677,11 +677,11 @@ func AppendStringPathGooseRoute(router *http.ServeMux, service StringPathGooseSe
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/{string}/{opt_string}/{wrap_string}/{multi_string...}", goose.Chain(handler.StringPath(), options.Middlewares()...))
+	router.Handle("GET /v1/{string}/{opt_string}/{wrap_string}/{multi_string...}", server.Chain(handler.StringPath(), options.Middlewares()...))
 	return router
 }
 
@@ -689,9 +689,9 @@ type stringPathGooseHandler struct {
 	service                 StringPathGooseService
 	decoder                 stringPathGooseRequestDecoder
 	encoder                 stringPathGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h stringPathGooseHandler) StringPath() http.Handler {
@@ -702,7 +702,7 @@ func (h stringPathGooseHandler) StringPath() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -724,14 +724,14 @@ type stringPathGooseRequestDecoder struct {
 
 func (decoder stringPathGooseRequestDecoder) StringPath(ctx context.Context, r *http.Request) (*StringPathRequest, error) {
 	req := &StringPathRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	vars := goose.FormFromPath(r, "string", "opt_string", "wrap_string", "multi_string")
+	vars := server.FormFromPath(r, "string", "opt_string", "wrap_string", "multi_string")
 	var varErr error
 	req.String_ = vars.Get("string")
 	req.OptString = proto.String(vars.Get("opt_string"))
@@ -746,19 +746,19 @@ func (decoder stringPathGooseRequestDecoder) StringPath(ctx context.Context, r *
 type stringPathGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder stringPathGooseResponseEncoder) StringPath(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type EnumPathGooseService interface {
 	EnumPath(ctx context.Context, request *EnumPathRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendEnumPathGooseRoute(router *http.ServeMux, service EnumPathGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendEnumPathGooseRoute(router *http.ServeMux, service EnumPathGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := enumPathGooseHandler{
 		service: service,
 		decoder: enumPathGooseRequestDecoder{
@@ -769,11 +769,11 @@ func AppendEnumPathGooseRoute(router *http.ServeMux, service EnumPathGooseServic
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/{status}/{opt_status}", goose.Chain(handler.EnumPath(), options.Middlewares()...))
+	router.Handle("GET /v1/{status}/{opt_status}", server.Chain(handler.EnumPath(), options.Middlewares()...))
 	return router
 }
 
@@ -781,9 +781,9 @@ type enumPathGooseHandler struct {
 	service                 EnumPathGooseService
 	decoder                 enumPathGooseRequestDecoder
 	encoder                 enumPathGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h enumPathGooseHandler) EnumPath() http.Handler {
@@ -794,7 +794,7 @@ func (h enumPathGooseHandler) EnumPath() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -816,17 +816,17 @@ type enumPathGooseRequestDecoder struct {
 
 func (decoder enumPathGooseRequestDecoder) EnumPath(ctx context.Context, r *http.Request) (*EnumPathRequest, error) {
 	req := &EnumPathRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
 	if ok {
 		return req, nil
 	}
-	vars := goose.FormFromPath(r, "status", "opt_status")
+	vars := server.FormFromPath(r, "status", "opt_status")
 	var varErr error
-	req.Status, varErr = goose.DecodeForm[EnumPathRequest_Status](varErr, vars, "status", goose.GetInt[EnumPathRequest_Status])
-	req.OptStatus, varErr = goose.DecodeForm[*EnumPathRequest_Status](varErr, vars, "opt_status", goose.GetIntPtr[EnumPathRequest_Status])
+	req.Status, varErr = server.DecodeForm[EnumPathRequest_Status](varErr, vars, "status", server.GetInt[EnumPathRequest_Status])
+	req.OptStatus, varErr = server.DecodeForm[*EnumPathRequest_Status](varErr, vars, "opt_status", server.GetIntPtr[EnumPathRequest_Status])
 	if varErr != nil {
 		return nil, varErr
 	}
@@ -836,9 +836,9 @@ func (decoder enumPathGooseRequestDecoder) EnumPath(ctx context.Context, r *http
 type enumPathGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder enumPathGooseResponseEncoder) EnumPath(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }

@@ -7,7 +7,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/go-leo/goose"
+	"github.com/go-leo/goose/server"
 	"golang.org/x/exp/slog"
 )
 
@@ -43,7 +43,7 @@ func WithLevel(level slog.Level) Option {
 	}
 }
 
-func Middleware(opts ...Option) goose.MiddlewareFunc {
+func Middleware(opts ...Option) server.MiddlewareFunc {
 	opt := defaultOptions().apply(opts...)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

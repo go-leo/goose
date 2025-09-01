@@ -4,7 +4,7 @@ package query
 
 import (
 	context "context"
-	goose "github.com/go-leo/goose"
+	server "github.com/go-leo/goose/server"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
@@ -16,8 +16,8 @@ type BoolQueryGooseService interface {
 	BoolQuery(ctx context.Context, request *BoolQueryRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendBoolQueryGooseRoute(router *http.ServeMux, service BoolQueryGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendBoolQueryGooseRoute(router *http.ServeMux, service BoolQueryGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := boolQueryGooseHandler{
 		service: service,
 		decoder: boolQueryGooseRequestDecoder{
@@ -28,11 +28,11 @@ func AppendBoolQueryGooseRoute(router *http.ServeMux, service BoolQueryGooseServ
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/bool", goose.Chain(handler.BoolQuery(), options.Middlewares()...))
+	router.Handle("GET /v1/bool", server.Chain(handler.BoolQuery(), options.Middlewares()...))
 	return router
 }
 
@@ -40,9 +40,9 @@ type boolQueryGooseHandler struct {
 	service                 BoolQueryGooseService
 	decoder                 boolQueryGooseRequestDecoder
 	encoder                 boolQueryGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h boolQueryGooseHandler) BoolQuery() http.Handler {
@@ -53,7 +53,7 @@ func (h boolQueryGooseHandler) BoolQuery() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -75,7 +75,7 @@ type boolQueryGooseRequestDecoder struct {
 
 func (decoder boolQueryGooseRequestDecoder) BoolQuery(ctx context.Context, r *http.Request) (*BoolQueryRequest, error) {
 	req := &BoolQueryRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
@@ -84,11 +84,11 @@ func (decoder boolQueryGooseRequestDecoder) BoolQuery(ctx context.Context, r *ht
 	}
 	queries := r.URL.Query()
 	var queryErr error
-	req.Bool, queryErr = goose.DecodeForm[bool](queryErr, queries, "bool", goose.GetBool)
-	req.OptBool, queryErr = goose.DecodeForm[*bool](queryErr, queries, "opt_bool", goose.GetBoolPtr)
-	req.WrapBool, queryErr = goose.DecodeForm[*wrapperspb.BoolValue](queryErr, queries, "wrap_bool", goose.GetBoolValue)
-	req.ListBool, queryErr = goose.DecodeForm[[]bool](queryErr, queries, "list_bool", goose.GetBoolSlice)
-	req.ListWrapBool, queryErr = goose.DecodeForm[[]*wrapperspb.BoolValue](queryErr, queries, "list_wrap_bool", goose.GetBoolValueSlice)
+	req.Bool, queryErr = server.DecodeForm[bool](queryErr, queries, "bool", server.GetBool)
+	req.OptBool, queryErr = server.DecodeForm[*bool](queryErr, queries, "opt_bool", server.GetBoolPtr)
+	req.WrapBool, queryErr = server.DecodeForm[*wrapperspb.BoolValue](queryErr, queries, "wrap_bool", server.GetBoolValue)
+	req.ListBool, queryErr = server.DecodeForm[[]bool](queryErr, queries, "list_bool", server.GetBoolSlice)
+	req.ListWrapBool, queryErr = server.DecodeForm[[]*wrapperspb.BoolValue](queryErr, queries, "list_wrap_bool", server.GetBoolValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -98,19 +98,19 @@ func (decoder boolQueryGooseRequestDecoder) BoolQuery(ctx context.Context, r *ht
 type boolQueryGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder boolQueryGooseResponseEncoder) BoolQuery(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type Int32QueryGooseService interface {
 	Int32Query(ctx context.Context, request *Int32QueryRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendInt32QueryGooseRoute(router *http.ServeMux, service Int32QueryGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendInt32QueryGooseRoute(router *http.ServeMux, service Int32QueryGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := int32QueryGooseHandler{
 		service: service,
 		decoder: int32QueryGooseRequestDecoder{
@@ -121,11 +121,11 @@ func AppendInt32QueryGooseRoute(router *http.ServeMux, service Int32QueryGooseSe
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/int32", goose.Chain(handler.Int32Query(), options.Middlewares()...))
+	router.Handle("GET /v1/int32", server.Chain(handler.Int32Query(), options.Middlewares()...))
 	return router
 }
 
@@ -133,9 +133,9 @@ type int32QueryGooseHandler struct {
 	service                 Int32QueryGooseService
 	decoder                 int32QueryGooseRequestDecoder
 	encoder                 int32QueryGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h int32QueryGooseHandler) Int32Query() http.Handler {
@@ -146,7 +146,7 @@ func (h int32QueryGooseHandler) Int32Query() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -168,7 +168,7 @@ type int32QueryGooseRequestDecoder struct {
 
 func (decoder int32QueryGooseRequestDecoder) Int32Query(ctx context.Context, r *http.Request) (*Int32QueryRequest, error) {
 	req := &Int32QueryRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
@@ -177,17 +177,17 @@ func (decoder int32QueryGooseRequestDecoder) Int32Query(ctx context.Context, r *
 	}
 	queries := r.URL.Query()
 	var queryErr error
-	req.Int32, queryErr = goose.DecodeForm[int32](queryErr, queries, "int32", goose.GetInt32)
-	req.Sint32, queryErr = goose.DecodeForm[int32](queryErr, queries, "sint32", goose.GetInt32)
-	req.Sfixed32, queryErr = goose.DecodeForm[int32](queryErr, queries, "sfixed32", goose.GetInt32)
-	req.OptInt32, queryErr = goose.DecodeForm[*int32](queryErr, queries, "opt_int32", goose.GetInt32Ptr)
-	req.OptSint32, queryErr = goose.DecodeForm[*int32](queryErr, queries, "opt_sint32", goose.GetInt32Ptr)
-	req.OptSfixed32, queryErr = goose.DecodeForm[*int32](queryErr, queries, "opt_sfixed32", goose.GetInt32Ptr)
-	req.WrapInt32, queryErr = goose.DecodeForm[*wrapperspb.Int32Value](queryErr, queries, "wrap_int32", goose.GetInt32Value)
-	req.ListInt32, queryErr = goose.DecodeForm[[]int32](queryErr, queries, "list_int32", goose.GetInt32Slice)
-	req.ListSint32, queryErr = goose.DecodeForm[[]int32](queryErr, queries, "list_sint32", goose.GetInt32Slice)
-	req.ListSfixed32, queryErr = goose.DecodeForm[[]int32](queryErr, queries, "list_sfixed32", goose.GetInt32Slice)
-	req.ListWrapInt32, queryErr = goose.DecodeForm[[]*wrapperspb.Int32Value](queryErr, queries, "list_wrap_int32", goose.GetInt32ValueSlice)
+	req.Int32, queryErr = server.DecodeForm[int32](queryErr, queries, "int32", server.GetInt32)
+	req.Sint32, queryErr = server.DecodeForm[int32](queryErr, queries, "sint32", server.GetInt32)
+	req.Sfixed32, queryErr = server.DecodeForm[int32](queryErr, queries, "sfixed32", server.GetInt32)
+	req.OptInt32, queryErr = server.DecodeForm[*int32](queryErr, queries, "opt_int32", server.GetInt32Ptr)
+	req.OptSint32, queryErr = server.DecodeForm[*int32](queryErr, queries, "opt_sint32", server.GetInt32Ptr)
+	req.OptSfixed32, queryErr = server.DecodeForm[*int32](queryErr, queries, "opt_sfixed32", server.GetInt32Ptr)
+	req.WrapInt32, queryErr = server.DecodeForm[*wrapperspb.Int32Value](queryErr, queries, "wrap_int32", server.GetInt32Value)
+	req.ListInt32, queryErr = server.DecodeForm[[]int32](queryErr, queries, "list_int32", server.GetInt32Slice)
+	req.ListSint32, queryErr = server.DecodeForm[[]int32](queryErr, queries, "list_sint32", server.GetInt32Slice)
+	req.ListSfixed32, queryErr = server.DecodeForm[[]int32](queryErr, queries, "list_sfixed32", server.GetInt32Slice)
+	req.ListWrapInt32, queryErr = server.DecodeForm[[]*wrapperspb.Int32Value](queryErr, queries, "list_wrap_int32", server.GetInt32ValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -197,19 +197,19 @@ func (decoder int32QueryGooseRequestDecoder) Int32Query(ctx context.Context, r *
 type int32QueryGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder int32QueryGooseResponseEncoder) Int32Query(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type Int64QueryGooseService interface {
 	Int64Query(ctx context.Context, request *Int64QueryRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendInt64QueryGooseRoute(router *http.ServeMux, service Int64QueryGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendInt64QueryGooseRoute(router *http.ServeMux, service Int64QueryGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := int64QueryGooseHandler{
 		service: service,
 		decoder: int64QueryGooseRequestDecoder{
@@ -220,11 +220,11 @@ func AppendInt64QueryGooseRoute(router *http.ServeMux, service Int64QueryGooseSe
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/int64", goose.Chain(handler.Int64Query(), options.Middlewares()...))
+	router.Handle("GET /v1/int64", server.Chain(handler.Int64Query(), options.Middlewares()...))
 	return router
 }
 
@@ -232,9 +232,9 @@ type int64QueryGooseHandler struct {
 	service                 Int64QueryGooseService
 	decoder                 int64QueryGooseRequestDecoder
 	encoder                 int64QueryGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h int64QueryGooseHandler) Int64Query() http.Handler {
@@ -245,7 +245,7 @@ func (h int64QueryGooseHandler) Int64Query() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -267,7 +267,7 @@ type int64QueryGooseRequestDecoder struct {
 
 func (decoder int64QueryGooseRequestDecoder) Int64Query(ctx context.Context, r *http.Request) (*Int64QueryRequest, error) {
 	req := &Int64QueryRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
@@ -276,17 +276,17 @@ func (decoder int64QueryGooseRequestDecoder) Int64Query(ctx context.Context, r *
 	}
 	queries := r.URL.Query()
 	var queryErr error
-	req.Int64, queryErr = goose.DecodeForm[int64](queryErr, queries, "int64", goose.GetInt64)
-	req.Sint64, queryErr = goose.DecodeForm[int64](queryErr, queries, "sint64", goose.GetInt64)
-	req.Sfixed64, queryErr = goose.DecodeForm[int64](queryErr, queries, "sfixed64", goose.GetInt64)
-	req.OptInt64, queryErr = goose.DecodeForm[*int64](queryErr, queries, "opt_int64", goose.GetInt64Ptr)
-	req.OptSint64, queryErr = goose.DecodeForm[*int64](queryErr, queries, "opt_sint64", goose.GetInt64Ptr)
-	req.OptSfixed64, queryErr = goose.DecodeForm[*int64](queryErr, queries, "opt_sfixed64", goose.GetInt64Ptr)
-	req.WrapInt64, queryErr = goose.DecodeForm[*wrapperspb.Int64Value](queryErr, queries, "wrap_int64", goose.GetInt64Value)
-	req.ListInt64, queryErr = goose.DecodeForm[[]int64](queryErr, queries, "list_int64", goose.GetInt64Slice)
-	req.ListSint64, queryErr = goose.DecodeForm[[]int64](queryErr, queries, "list_sint64", goose.GetInt64Slice)
-	req.ListSfixed64, queryErr = goose.DecodeForm[[]int64](queryErr, queries, "list_sfixed64", goose.GetInt64Slice)
-	req.ListWrapInt64, queryErr = goose.DecodeForm[[]*wrapperspb.Int64Value](queryErr, queries, "list_wrap_int64", goose.GetInt64ValueSlice)
+	req.Int64, queryErr = server.DecodeForm[int64](queryErr, queries, "int64", server.GetInt64)
+	req.Sint64, queryErr = server.DecodeForm[int64](queryErr, queries, "sint64", server.GetInt64)
+	req.Sfixed64, queryErr = server.DecodeForm[int64](queryErr, queries, "sfixed64", server.GetInt64)
+	req.OptInt64, queryErr = server.DecodeForm[*int64](queryErr, queries, "opt_int64", server.GetInt64Ptr)
+	req.OptSint64, queryErr = server.DecodeForm[*int64](queryErr, queries, "opt_sint64", server.GetInt64Ptr)
+	req.OptSfixed64, queryErr = server.DecodeForm[*int64](queryErr, queries, "opt_sfixed64", server.GetInt64Ptr)
+	req.WrapInt64, queryErr = server.DecodeForm[*wrapperspb.Int64Value](queryErr, queries, "wrap_int64", server.GetInt64Value)
+	req.ListInt64, queryErr = server.DecodeForm[[]int64](queryErr, queries, "list_int64", server.GetInt64Slice)
+	req.ListSint64, queryErr = server.DecodeForm[[]int64](queryErr, queries, "list_sint64", server.GetInt64Slice)
+	req.ListSfixed64, queryErr = server.DecodeForm[[]int64](queryErr, queries, "list_sfixed64", server.GetInt64Slice)
+	req.ListWrapInt64, queryErr = server.DecodeForm[[]*wrapperspb.Int64Value](queryErr, queries, "list_wrap_int64", server.GetInt64ValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -296,19 +296,19 @@ func (decoder int64QueryGooseRequestDecoder) Int64Query(ctx context.Context, r *
 type int64QueryGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder int64QueryGooseResponseEncoder) Int64Query(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type Uint32QueryGooseService interface {
 	Uint32Query(ctx context.Context, request *Uint32QueryRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendUint32QueryGooseRoute(router *http.ServeMux, service Uint32QueryGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendUint32QueryGooseRoute(router *http.ServeMux, service Uint32QueryGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := uint32QueryGooseHandler{
 		service: service,
 		decoder: uint32QueryGooseRequestDecoder{
@@ -319,11 +319,11 @@ func AppendUint32QueryGooseRoute(router *http.ServeMux, service Uint32QueryGoose
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/uint32", goose.Chain(handler.Uint32Query(), options.Middlewares()...))
+	router.Handle("GET /v1/uint32", server.Chain(handler.Uint32Query(), options.Middlewares()...))
 	return router
 }
 
@@ -331,9 +331,9 @@ type uint32QueryGooseHandler struct {
 	service                 Uint32QueryGooseService
 	decoder                 uint32QueryGooseRequestDecoder
 	encoder                 uint32QueryGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h uint32QueryGooseHandler) Uint32Query() http.Handler {
@@ -344,7 +344,7 @@ func (h uint32QueryGooseHandler) Uint32Query() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -366,7 +366,7 @@ type uint32QueryGooseRequestDecoder struct {
 
 func (decoder uint32QueryGooseRequestDecoder) Uint32Query(ctx context.Context, r *http.Request) (*Uint32QueryRequest, error) {
 	req := &Uint32QueryRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
@@ -375,14 +375,14 @@ func (decoder uint32QueryGooseRequestDecoder) Uint32Query(ctx context.Context, r
 	}
 	queries := r.URL.Query()
 	var queryErr error
-	req.Uint32, queryErr = goose.DecodeForm[uint32](queryErr, queries, "uint32", goose.GetUint32)
-	req.Fixed32, queryErr = goose.DecodeForm[uint32](queryErr, queries, "fixed32", goose.GetUint32)
-	req.OptUint32, queryErr = goose.DecodeForm[*uint32](queryErr, queries, "opt_uint32", goose.GetUint32Ptr)
-	req.OptFixed32, queryErr = goose.DecodeForm[*uint32](queryErr, queries, "opt_fixed32", goose.GetUint32Ptr)
-	req.WrapUint32, queryErr = goose.DecodeForm[*wrapperspb.UInt32Value](queryErr, queries, "wrap_uint32", goose.GetUint32Value)
-	req.ListUint32, queryErr = goose.DecodeForm[[]uint32](queryErr, queries, "list_uint32", goose.GetUint32Slice)
-	req.ListFixed32, queryErr = goose.DecodeForm[[]uint32](queryErr, queries, "list_fixed32", goose.GetUint32Slice)
-	req.ListWrapUint32, queryErr = goose.DecodeForm[[]*wrapperspb.UInt32Value](queryErr, queries, "list_wrap_uint32", goose.GetUint32ValueSlice)
+	req.Uint32, queryErr = server.DecodeForm[uint32](queryErr, queries, "uint32", server.GetUint32)
+	req.Fixed32, queryErr = server.DecodeForm[uint32](queryErr, queries, "fixed32", server.GetUint32)
+	req.OptUint32, queryErr = server.DecodeForm[*uint32](queryErr, queries, "opt_uint32", server.GetUint32Ptr)
+	req.OptFixed32, queryErr = server.DecodeForm[*uint32](queryErr, queries, "opt_fixed32", server.GetUint32Ptr)
+	req.WrapUint32, queryErr = server.DecodeForm[*wrapperspb.UInt32Value](queryErr, queries, "wrap_uint32", server.GetUint32Value)
+	req.ListUint32, queryErr = server.DecodeForm[[]uint32](queryErr, queries, "list_uint32", server.GetUint32Slice)
+	req.ListFixed32, queryErr = server.DecodeForm[[]uint32](queryErr, queries, "list_fixed32", server.GetUint32Slice)
+	req.ListWrapUint32, queryErr = server.DecodeForm[[]*wrapperspb.UInt32Value](queryErr, queries, "list_wrap_uint32", server.GetUint32ValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -392,19 +392,19 @@ func (decoder uint32QueryGooseRequestDecoder) Uint32Query(ctx context.Context, r
 type uint32QueryGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder uint32QueryGooseResponseEncoder) Uint32Query(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type Uint64QueryGooseService interface {
 	Uint64Query(ctx context.Context, request *Uint64QueryRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendUint64QueryGooseRoute(router *http.ServeMux, service Uint64QueryGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendUint64QueryGooseRoute(router *http.ServeMux, service Uint64QueryGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := uint64QueryGooseHandler{
 		service: service,
 		decoder: uint64QueryGooseRequestDecoder{
@@ -415,11 +415,11 @@ func AppendUint64QueryGooseRoute(router *http.ServeMux, service Uint64QueryGoose
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/uint64", goose.Chain(handler.Uint64Query(), options.Middlewares()...))
+	router.Handle("GET /v1/uint64", server.Chain(handler.Uint64Query(), options.Middlewares()...))
 	return router
 }
 
@@ -427,9 +427,9 @@ type uint64QueryGooseHandler struct {
 	service                 Uint64QueryGooseService
 	decoder                 uint64QueryGooseRequestDecoder
 	encoder                 uint64QueryGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h uint64QueryGooseHandler) Uint64Query() http.Handler {
@@ -440,7 +440,7 @@ func (h uint64QueryGooseHandler) Uint64Query() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -462,7 +462,7 @@ type uint64QueryGooseRequestDecoder struct {
 
 func (decoder uint64QueryGooseRequestDecoder) Uint64Query(ctx context.Context, r *http.Request) (*Uint64QueryRequest, error) {
 	req := &Uint64QueryRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
@@ -471,14 +471,14 @@ func (decoder uint64QueryGooseRequestDecoder) Uint64Query(ctx context.Context, r
 	}
 	queries := r.URL.Query()
 	var queryErr error
-	req.Uint64, queryErr = goose.DecodeForm[uint64](queryErr, queries, "uint64", goose.GetUint64)
-	req.Fixed64, queryErr = goose.DecodeForm[uint64](queryErr, queries, "fixed64", goose.GetUint64)
-	req.OptUint64, queryErr = goose.DecodeForm[*uint64](queryErr, queries, "opt_uint64", goose.GetUint64Ptr)
-	req.OptFixed64, queryErr = goose.DecodeForm[*uint64](queryErr, queries, "opt_fixed64", goose.GetUint64Ptr)
-	req.WrapUint64, queryErr = goose.DecodeForm[*wrapperspb.UInt64Value](queryErr, queries, "wrap_uint64", goose.GetUint64Value)
-	req.ListUint64, queryErr = goose.DecodeForm[[]uint64](queryErr, queries, "list_uint64", goose.GetUint64Slice)
-	req.ListFixed64, queryErr = goose.DecodeForm[[]uint64](queryErr, queries, "list_fixed64", goose.GetUint64Slice)
-	req.ListWrapUint64, queryErr = goose.DecodeForm[[]*wrapperspb.UInt64Value](queryErr, queries, "list_wrap_uint64", goose.GetUint64ValueSlice)
+	req.Uint64, queryErr = server.DecodeForm[uint64](queryErr, queries, "uint64", server.GetUint64)
+	req.Fixed64, queryErr = server.DecodeForm[uint64](queryErr, queries, "fixed64", server.GetUint64)
+	req.OptUint64, queryErr = server.DecodeForm[*uint64](queryErr, queries, "opt_uint64", server.GetUint64Ptr)
+	req.OptFixed64, queryErr = server.DecodeForm[*uint64](queryErr, queries, "opt_fixed64", server.GetUint64Ptr)
+	req.WrapUint64, queryErr = server.DecodeForm[*wrapperspb.UInt64Value](queryErr, queries, "wrap_uint64", server.GetUint64Value)
+	req.ListUint64, queryErr = server.DecodeForm[[]uint64](queryErr, queries, "list_uint64", server.GetUint64Slice)
+	req.ListFixed64, queryErr = server.DecodeForm[[]uint64](queryErr, queries, "list_fixed64", server.GetUint64Slice)
+	req.ListWrapUint64, queryErr = server.DecodeForm[[]*wrapperspb.UInt64Value](queryErr, queries, "list_wrap_uint64", server.GetUint64ValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -488,19 +488,19 @@ func (decoder uint64QueryGooseRequestDecoder) Uint64Query(ctx context.Context, r
 type uint64QueryGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder uint64QueryGooseResponseEncoder) Uint64Query(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type FloatQueryGooseService interface {
 	FloatQuery(ctx context.Context, request *FloatQueryRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendFloatQueryGooseRoute(router *http.ServeMux, service FloatQueryGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendFloatQueryGooseRoute(router *http.ServeMux, service FloatQueryGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := floatQueryGooseHandler{
 		service: service,
 		decoder: floatQueryGooseRequestDecoder{
@@ -511,11 +511,11 @@ func AppendFloatQueryGooseRoute(router *http.ServeMux, service FloatQueryGooseSe
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/float", goose.Chain(handler.FloatQuery(), options.Middlewares()...))
+	router.Handle("GET /v1/float", server.Chain(handler.FloatQuery(), options.Middlewares()...))
 	return router
 }
 
@@ -523,9 +523,9 @@ type floatQueryGooseHandler struct {
 	service                 FloatQueryGooseService
 	decoder                 floatQueryGooseRequestDecoder
 	encoder                 floatQueryGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h floatQueryGooseHandler) FloatQuery() http.Handler {
@@ -536,7 +536,7 @@ func (h floatQueryGooseHandler) FloatQuery() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -558,7 +558,7 @@ type floatQueryGooseRequestDecoder struct {
 
 func (decoder floatQueryGooseRequestDecoder) FloatQuery(ctx context.Context, r *http.Request) (*FloatQueryRequest, error) {
 	req := &FloatQueryRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
@@ -567,11 +567,11 @@ func (decoder floatQueryGooseRequestDecoder) FloatQuery(ctx context.Context, r *
 	}
 	queries := r.URL.Query()
 	var queryErr error
-	req.Float, queryErr = goose.DecodeForm[float32](queryErr, queries, "float", goose.GetFloat32)
-	req.OptFloat, queryErr = goose.DecodeForm[*float32](queryErr, queries, "opt_float", goose.GetFloat32Ptr)
-	req.WrapFloat, queryErr = goose.DecodeForm[*wrapperspb.FloatValue](queryErr, queries, "wrap_float", goose.GetFloat32Value)
-	req.ListFloat, queryErr = goose.DecodeForm[[]float32](queryErr, queries, "list_float", goose.GetFloat32Slice)
-	req.ListWrapFloat, queryErr = goose.DecodeForm[[]*wrapperspb.FloatValue](queryErr, queries, "list_wrap_float", goose.GetFloat32ValueSlice)
+	req.Float, queryErr = server.DecodeForm[float32](queryErr, queries, "float", server.GetFloat32)
+	req.OptFloat, queryErr = server.DecodeForm[*float32](queryErr, queries, "opt_float", server.GetFloat32Ptr)
+	req.WrapFloat, queryErr = server.DecodeForm[*wrapperspb.FloatValue](queryErr, queries, "wrap_float", server.GetFloat32Value)
+	req.ListFloat, queryErr = server.DecodeForm[[]float32](queryErr, queries, "list_float", server.GetFloat32Slice)
+	req.ListWrapFloat, queryErr = server.DecodeForm[[]*wrapperspb.FloatValue](queryErr, queries, "list_wrap_float", server.GetFloat32ValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -581,19 +581,19 @@ func (decoder floatQueryGooseRequestDecoder) FloatQuery(ctx context.Context, r *
 type floatQueryGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder floatQueryGooseResponseEncoder) FloatQuery(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type DoubleQueryGooseService interface {
 	DoubleQuery(ctx context.Context, request *DoubleQueryRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendDoubleQueryGooseRoute(router *http.ServeMux, service DoubleQueryGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendDoubleQueryGooseRoute(router *http.ServeMux, service DoubleQueryGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := doubleQueryGooseHandler{
 		service: service,
 		decoder: doubleQueryGooseRequestDecoder{
@@ -604,11 +604,11 @@ func AppendDoubleQueryGooseRoute(router *http.ServeMux, service DoubleQueryGoose
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/double", goose.Chain(handler.DoubleQuery(), options.Middlewares()...))
+	router.Handle("GET /v1/double", server.Chain(handler.DoubleQuery(), options.Middlewares()...))
 	return router
 }
 
@@ -616,9 +616,9 @@ type doubleQueryGooseHandler struct {
 	service                 DoubleQueryGooseService
 	decoder                 doubleQueryGooseRequestDecoder
 	encoder                 doubleQueryGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h doubleQueryGooseHandler) DoubleQuery() http.Handler {
@@ -629,7 +629,7 @@ func (h doubleQueryGooseHandler) DoubleQuery() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -651,7 +651,7 @@ type doubleQueryGooseRequestDecoder struct {
 
 func (decoder doubleQueryGooseRequestDecoder) DoubleQuery(ctx context.Context, r *http.Request) (*DoubleQueryRequest, error) {
 	req := &DoubleQueryRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
@@ -660,11 +660,11 @@ func (decoder doubleQueryGooseRequestDecoder) DoubleQuery(ctx context.Context, r
 	}
 	queries := r.URL.Query()
 	var queryErr error
-	req.Double, queryErr = goose.DecodeForm[float64](queryErr, queries, "double", goose.GetFloat64)
-	req.OptDouble, queryErr = goose.DecodeForm[*float64](queryErr, queries, "opt_double", goose.GetFloat64Ptr)
-	req.WrapDouble, queryErr = goose.DecodeForm[*wrapperspb.DoubleValue](queryErr, queries, "wrap_double", goose.GetFloat64Value)
-	req.ListDouble, queryErr = goose.DecodeForm[[]float64](queryErr, queries, "list_double", goose.GetFloat64Slice)
-	req.ListWrapDouble, queryErr = goose.DecodeForm[[]*wrapperspb.DoubleValue](queryErr, queries, "list_wrap_double", goose.GetFloat64ValueSlice)
+	req.Double, queryErr = server.DecodeForm[float64](queryErr, queries, "double", server.GetFloat64)
+	req.OptDouble, queryErr = server.DecodeForm[*float64](queryErr, queries, "opt_double", server.GetFloat64Ptr)
+	req.WrapDouble, queryErr = server.DecodeForm[*wrapperspb.DoubleValue](queryErr, queries, "wrap_double", server.GetFloat64Value)
+	req.ListDouble, queryErr = server.DecodeForm[[]float64](queryErr, queries, "list_double", server.GetFloat64Slice)
+	req.ListWrapDouble, queryErr = server.DecodeForm[[]*wrapperspb.DoubleValue](queryErr, queries, "list_wrap_double", server.GetFloat64ValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -674,19 +674,19 @@ func (decoder doubleQueryGooseRequestDecoder) DoubleQuery(ctx context.Context, r
 type doubleQueryGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder doubleQueryGooseResponseEncoder) DoubleQuery(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type StringQueryGooseService interface {
 	StringQuery(ctx context.Context, request *StringQueryRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendStringQueryGooseRoute(router *http.ServeMux, service StringQueryGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendStringQueryGooseRoute(router *http.ServeMux, service StringQueryGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := stringQueryGooseHandler{
 		service: service,
 		decoder: stringQueryGooseRequestDecoder{
@@ -697,11 +697,11 @@ func AppendStringQueryGooseRoute(router *http.ServeMux, service StringQueryGoose
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/string", goose.Chain(handler.StringQuery(), options.Middlewares()...))
+	router.Handle("GET /v1/string", server.Chain(handler.StringQuery(), options.Middlewares()...))
 	return router
 }
 
@@ -709,9 +709,9 @@ type stringQueryGooseHandler struct {
 	service                 StringQueryGooseService
 	decoder                 stringQueryGooseRequestDecoder
 	encoder                 stringQueryGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h stringQueryGooseHandler) StringQuery() http.Handler {
@@ -722,7 +722,7 @@ func (h stringQueryGooseHandler) StringQuery() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -744,7 +744,7 @@ type stringQueryGooseRequestDecoder struct {
 
 func (decoder stringQueryGooseRequestDecoder) StringQuery(ctx context.Context, r *http.Request) (*StringQueryRequest, error) {
 	req := &StringQueryRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
@@ -757,7 +757,7 @@ func (decoder stringQueryGooseRequestDecoder) StringQuery(ctx context.Context, r
 	req.OptString = proto.String(queries.Get("opt_string"))
 	req.WrapString = wrapperspb.String(queries.Get("wrap_string"))
 	req.ListString = queries["list_string"]
-	req.ListWrapString = goose.WrapStringSlice(queries["list_wrap_string"])
+	req.ListWrapString = server.WrapStringSlice(queries["list_wrap_string"])
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -767,19 +767,19 @@ func (decoder stringQueryGooseRequestDecoder) StringQuery(ctx context.Context, r
 type stringQueryGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder stringQueryGooseResponseEncoder) StringQuery(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }
 
 type EnumQueryGooseService interface {
 	EnumQuery(ctx context.Context, request *EnumQueryRequest) (*httpbody.HttpBody, error)
 }
 
-func AppendEnumQueryGooseRoute(router *http.ServeMux, service EnumQueryGooseService, opts ...goose.Option) *http.ServeMux {
-	options := goose.NewOptions(opts...)
+func AppendEnumQueryGooseRoute(router *http.ServeMux, service EnumQueryGooseService, opts ...server.Option) *http.ServeMux {
+	options := server.NewOptions(opts...)
 	handler := enumQueryGooseHandler{
 		service: service,
 		decoder: enumQueryGooseRequestDecoder{
@@ -790,11 +790,11 @@ func AppendEnumQueryGooseRoute(router *http.ServeMux, service EnumQueryGooseServ
 			unmarshalOptions:    options.UnmarshalOptions(),
 			responseTransformer: options.ResponseTransformer(),
 		},
-		errorEncoder:            goose.DefaultEncodeError,
+		errorEncoder:            server.DefaultEncodeError,
 		shouldFailFast:          options.ShouldFailFast(),
 		onValidationErrCallback: options.OnValidationErrCallback(),
 	}
-	router.Handle("GET /v1/enum", goose.Chain(handler.EnumQuery(), options.Middlewares()...))
+	router.Handle("GET /v1/enum", server.Chain(handler.EnumQuery(), options.Middlewares()...))
 	return router
 }
 
@@ -802,9 +802,9 @@ type enumQueryGooseHandler struct {
 	service                 EnumQueryGooseService
 	decoder                 enumQueryGooseRequestDecoder
 	encoder                 enumQueryGooseResponseEncoder
-	errorEncoder            goose.ErrorEncoder
+	errorEncoder            server.ErrorEncoder
 	shouldFailFast          bool
-	onValidationErrCallback goose.OnValidationErrCallback
+	onValidationErrCallback server.OnValidationErrCallback
 }
 
 func (h enumQueryGooseHandler) EnumQuery() http.Handler {
@@ -815,7 +815,7 @@ func (h enumQueryGooseHandler) EnumQuery() http.Handler {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
-		if err := goose.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
+		if err := server.ValidateRequest(ctx, in, h.shouldFailFast, h.onValidationErrCallback); err != nil {
 			h.errorEncoder(ctx, err, writer)
 			return
 		}
@@ -837,7 +837,7 @@ type enumQueryGooseRequestDecoder struct {
 
 func (decoder enumQueryGooseRequestDecoder) EnumQuery(ctx context.Context, r *http.Request) (*EnumQueryRequest, error) {
 	req := &EnumQueryRequest{}
-	ok, err := goose.CustomDecodeRequest(ctx, r, req)
+	ok, err := server.CustomDecodeRequest(ctx, r, req)
 	if err != nil {
 		return nil, err
 	}
@@ -846,9 +846,9 @@ func (decoder enumQueryGooseRequestDecoder) EnumQuery(ctx context.Context, r *ht
 	}
 	queries := r.URL.Query()
 	var queryErr error
-	req.Status, queryErr = goose.DecodeForm[EnumQueryRequest_Status](queryErr, queries, "status", goose.GetInt[EnumQueryRequest_Status])
-	req.OptStatus, queryErr = goose.DecodeForm[*EnumQueryRequest_Status](queryErr, queries, "opt_status", goose.GetIntPtr[EnumQueryRequest_Status])
-	req.ListStatus, queryErr = goose.DecodeForm[[]EnumQueryRequest_Status](queryErr, queries, "list_status", goose.GetIntSlice[EnumQueryRequest_Status])
+	req.Status, queryErr = server.DecodeForm[EnumQueryRequest_Status](queryErr, queries, "status", server.GetInt[EnumQueryRequest_Status])
+	req.OptStatus, queryErr = server.DecodeForm[*EnumQueryRequest_Status](queryErr, queries, "opt_status", server.GetIntPtr[EnumQueryRequest_Status])
+	req.ListStatus, queryErr = server.DecodeForm[[]EnumQueryRequest_Status](queryErr, queries, "list_status", server.GetIntSlice[EnumQueryRequest_Status])
 	if queryErr != nil {
 		return nil, queryErr
 	}
@@ -858,9 +858,9 @@ func (decoder enumQueryGooseRequestDecoder) EnumQuery(ctx context.Context, r *ht
 type enumQueryGooseResponseEncoder struct {
 	marshalOptions      protojson.MarshalOptions
 	unmarshalOptions    protojson.UnmarshalOptions
-	responseTransformer goose.ResponseTransformer
+	responseTransformer server.ResponseTransformer
 }
 
 func (encoder enumQueryGooseResponseEncoder) EnumQuery(ctx context.Context, w http.ResponseWriter, resp *httpbody.HttpBody) error {
-	return goose.EncodeHttpBody(ctx, w, resp)
+	return server.EncodeHttpBody(ctx, w, resp)
 }

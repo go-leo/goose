@@ -1,5 +1,3 @@
-github.com/go-leo/goose v0.0.0-20250728035153-430523d180f9 h1:RvINq2ZYeGX/oxiZJuYzqYIrRixhXWUFovRfONZbCEw=
-github.com/go-leo/goose v0.0.0-20250728035153-430523d180f9/go.mod h1:4JnqdpGzkqM8Qvr/Oo+teDyTx27Rrzw1zj8cOsmFWRY=
 github.com/golang-jwt/jwt/v5 v5.2.2 h1:Rl4B7itRWVtYIHFrSNd7vhTiz9UpLdi6gZhZ3wEeDy8=
 github.com/golang-jwt/jwt/v5 v5.2.2/go.mod h1:pqrtFR0X4osieyHYxtmOUWsAWrfe1Q5UVIyoH402zdk=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=

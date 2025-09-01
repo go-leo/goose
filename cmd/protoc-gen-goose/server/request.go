@@ -59,7 +59,7 @@ func (generator *Generator) GenerateDecodeRequest(service *gen.Service, g *proto
 			for _, field := range pathFields {
 				fields = append(fields, strconv.Quote(string(field.Desc.Name())))
 			}
-			g.P("vars := ", gen.GoosePackage.Ident("FormFromPath"), "(r, ", strings.Join(fields, ", "), ")")
+			g.P("vars := ", gen.GooseServerPackage.Ident("FormFromPath"), "(r, ", strings.Join(fields, ", "), ")")
 			generator.PrintPathField(g, pathFields)
 		}
 
@@ -119,70 +119,70 @@ func (generator *Generator) PrintPathField(g *protogen.GeneratedFile, pathFields
 		switch field.Desc.Kind() {
 		case protoreflect.BoolKind: // bool
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetBoolPtr"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetBoolPtr"), fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetBool"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetBool"), fieldName, form, errName)
 			}
 		case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind: // int32
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt32Ptr"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt32Ptr"), fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt32"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt32"), fieldName, form, errName)
 			}
 		case protoreflect.Uint32Kind, protoreflect.Fixed32Kind: // uint32
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint32Ptr"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint32Ptr"), fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint32"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint32"), fieldName, form, errName)
 			}
 		case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind: // int64
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt64Ptr"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt64Ptr"), fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt64"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt64"), fieldName, form, errName)
 			}
 		case protoreflect.Uint64Kind, protoreflect.Fixed64Kind: // uint64
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint64Ptr"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint64Ptr"), fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint64"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint64"), fieldName, form, errName)
 			}
 		case protoreflect.FloatKind: // float32
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat32Ptr"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat32Ptr"), fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat32"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat32"), fieldName, form, errName)
 			}
 		case protoreflect.DoubleKind: // float64
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat64Ptr"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat64Ptr"), fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat64"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat64"), fieldName, form, errName)
 			}
 		case protoreflect.StringKind: // string
 			generator.PrintStringValueAssign(g, tgtValue, srcValue, pointer)
 		case protoreflect.EnumKind: // enum int32
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetIntPtr["+g.QualifiedGoIdent(goType[1].(protogen.GoIdent))+"]"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetIntPtr["+g.QualifiedGoIdent(goType[1].(protogen.GoIdent))+"]"), fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt["+g.QualifiedGoIdent(goType[0].(protogen.GoIdent))+"]"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt["+g.QualifiedGoIdent(goType[0].(protogen.GoIdent))+"]"), fieldName, form, errName)
 			}
 		case protoreflect.MessageKind:
 			switch field.Message.Desc.FullName() {
 			case "google.protobuf.DoubleValue":
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat64Value"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat64Value"), fieldName, form, errName)
 			case "google.protobuf.FloatValue":
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat32Value"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat32Value"), fieldName, form, errName)
 			case "google.protobuf.Int64Value":
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt64Value"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt64Value"), fieldName, form, errName)
 			case "google.protobuf.UInt64Value":
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint64Value"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint64Value"), fieldName, form, errName)
 			case "google.protobuf.Int32Value":
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt32Value"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt32Value"), fieldName, form, errName)
 			case "google.protobuf.UInt32Value":
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint32Value"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint32Value"), fieldName, form, errName)
 			case "google.protobuf.BoolValue":
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetBoolValue"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetBoolValue"), fieldName, form, errName)
 			case "google.protobuf.StringValue":
 				generator.PrintWrapStringValueAssign(g, tgtValue, srcValue)
 			}
@@ -215,72 +215,72 @@ func (generator *Generator) PrintQueryField(g *protogen.GeneratedFile, queryFiel
 		switch field.Desc.Kind() {
 		case protoreflect.BoolKind: // bool
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetBoolSlice"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetBoolSlice"), fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetBoolPtr"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetBoolPtr"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetBool"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetBool"), fieldName, form, errName)
 				}
 			}
 		case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind: // int32
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt32Slice"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt32Slice"), fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt32Ptr"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt32Ptr"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt32"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt32"), fieldName, form, errName)
 				}
 			}
 		case protoreflect.Uint32Kind, protoreflect.Fixed32Kind: // uint32
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint32Slice"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint32Slice"), fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint32Ptr"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint32Ptr"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint32"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint32"), fieldName, form, errName)
 				}
 			}
 		case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind: // int64
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt64Slice"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt64Slice"), fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt64Ptr"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt64Ptr"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt64"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt64"), fieldName, form, errName)
 				}
 			}
 		case protoreflect.Uint64Kind, protoreflect.Fixed64Kind: // uint64
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint64Slice"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint64Slice"), fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint64Ptr"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint64Ptr"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint64"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint64"), fieldName, form, errName)
 				}
 			}
 		case protoreflect.FloatKind: // float32
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat32Slice"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat32Slice"), fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat32Ptr"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat32Ptr"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat32"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat32"), fieldName, form, errName)
 				}
 			}
 		case protoreflect.DoubleKind: // float64
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat64Slice"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat64Slice"), fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat64Ptr"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat64Ptr"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat64"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat64"), fieldName, form, errName)
 				}
 			}
 		case protoreflect.StringKind: // string
@@ -291,57 +291,57 @@ func (generator *Generator) PrintQueryField(g *protogen.GeneratedFile, queryFiel
 			}
 		case protoreflect.EnumKind: // enum int32
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetIntSlice["+g.QualifiedGoIdent(goType[1].(protogen.GoIdent))+"]"), fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetIntSlice["+g.QualifiedGoIdent(goType[1].(protogen.GoIdent))+"]"), fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetIntPtr["+g.QualifiedGoIdent(goType[1].(protogen.GoIdent))+"]"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetIntPtr["+g.QualifiedGoIdent(goType[1].(protogen.GoIdent))+"]"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt["+g.QualifiedGoIdent(goType[0].(protogen.GoIdent))+"]"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt["+g.QualifiedGoIdent(goType[0].(protogen.GoIdent))+"]"), fieldName, form, errName)
 				}
 			}
 		case protoreflect.MessageKind:
 			switch field.Message.Desc.FullName() {
 			case "google.protobuf.DoubleValue":
 				if field.Desc.IsList() {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat64ValueSlice"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat64ValueSlice"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat64Value"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat64Value"), fieldName, form, errName)
 				}
 			case "google.protobuf.FloatValue":
 				if field.Desc.IsList() {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat32ValueSlice"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat32ValueSlice"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetFloat32Value"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetFloat32Value"), fieldName, form, errName)
 				}
 			case "google.protobuf.Int64Value":
 				if field.Desc.IsList() {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt64ValueSlice"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt64ValueSlice"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt64Value"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt64Value"), fieldName, form, errName)
 				}
 			case "google.protobuf.UInt64Value":
 				if field.Desc.IsList() {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint64ValueSlice"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint64ValueSlice"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint64Value"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint64Value"), fieldName, form, errName)
 				}
 			case "google.protobuf.Int32Value":
 				if field.Desc.IsList() {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt32ValueSlice"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt32ValueSlice"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetInt32Value"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetInt32Value"), fieldName, form, errName)
 				}
 			case "google.protobuf.UInt32Value":
 				if field.Desc.IsList() {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint32ValueSlice"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint32ValueSlice"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetUint32Value"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetUint32Value"), fieldName, form, errName)
 				}
 			case "google.protobuf.BoolValue":
 				if field.Desc.IsList() {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetBoolValueSlice"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetBoolValueSlice"), fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GoosePackage.Ident("GetBoolValue"), fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GooseServerPackage.Ident("GetBoolValue"), fieldName, form, errName)
 				}
 			case "google.protobuf.StringValue":
 				if field.Desc.IsList() {
@@ -375,5 +375,5 @@ func (generator *Generator) PrintStringListAssign(g *protogen.GeneratedFile, tgt
 }
 
 func (generator *Generator) PrintWrapStringListAssign(g *protogen.GeneratedFile, tgtValue []any, srcValue []any) {
-	g.P(append(tgtValue, append(append([]any{gen.GoosePackage.Ident("WrapStringSlice"), "("}, srcValue...), ")")...)...)
+	g.P(append(tgtValue, append(append([]any{gen.GooseServerPackage.Ident("WrapStringSlice"), "("}, srcValue...), ")")...)...)
 }

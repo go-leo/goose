@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-leo/goose"
+	"github.com/go-leo/goose/server"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -42,7 +42,7 @@ func Realm(realm string) Option {
 	}
 }
 
-func Middleware(keyFunc jwt.Keyfunc, opts ...Option) goose.MiddlewareFunc {
+func Middleware(keyFunc jwt.Keyfunc, opts ...Option) server.MiddlewareFunc {
 	opt := defaultOptions().apply(opts...)
 	realm := "Basic realm=" + strconv.Quote(opt.realm)
 	return func(next http.Handler) http.Handler {

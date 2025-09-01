@@ -1,5 +1,5 @@
 // wrapper_test.go
-package goose
+package server
 
 import (
 	"reflect"

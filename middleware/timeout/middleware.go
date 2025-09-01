@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-leo/goose"
+	"github.com/go-leo/goose/server"
 	"golang.org/x/exp/slog"
 )
 
 const key = "X-Leo-Timeout"
 
-func Middleware(duration time.Duration) goose.MiddlewareFunc {
+func Middleware(duration time.Duration) server.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			timeout := duration
