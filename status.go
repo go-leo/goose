@@ -7,23 +7,59 @@ import (
 	"io"
 	"log"
 	"net/http"
-
 )
 
-// ErrorEncoder defines a function type for encoding errors into HTTP responses.
-// Implementations should write the error to the provided http.ResponseWriter.
+// ErrorEncoder is a function type that defines how to encode errors into HTTP responses.
+// It takes a context, an error to encode, and an http.ResponseWriter to write the response to.
+//
+// Parameters:
+//   - ctx: The context.Context for the request
+//   - err: The error to encode
+//   - response: The http.ResponseWriter to write the encoded error response
 type ErrorEncoder func(ctx context.Context, err error, response http.ResponseWriter)
 
+// ErrorDecoder is a function type that defines how to decode errors from HTTP responses.
+// It takes a context, an HTTP response, and an ErrorFactory, and returns the decoded error
+// along with a boolean indicating whether decoding was successful.
+//
+// Parameters:
+//   - ctx: The context.Context for the request
+//   - response: The http.Response to decode the error from
+//   - factory: The ErrorFactory used to create a new error instance
+//
+// Returns:
+//   - error: The decoded error, or nil if decoding failed
+//   - bool: True if decoding was successful, false otherwise
 type ErrorDecoder func(ctx context.Context, response *http.Response, factory ErrorFactory) (error, bool)
 
+// ErrorFactory is a function type that creates new error instances.
+// It's used by ErrorDecoder to create the appropriate error type for decoding.
+//
+// Returns:
+//   - error: A new error instance
 type ErrorFactory func() error
 
+// defaultError represents a standard HTTP error with status code, headers, and body.
+// It implements several interfaces to provide rich error information.
 type defaultError struct {
-	statusCode int
-	headers    http.Header
-	body       any
+	statusCode int         // HTTP status code for the error
+	headers    http.Header // HTTP headers associated with the error
+	body       any         // Error body content
 }
 
+// NewError creates a new defaultError with the specified status code, body, and optional headers.
+// Headers must be provided in key-value pairs, so the number of header arguments must be even.
+//
+// Parameters:
+//   - statusCode: The HTTP status code for the error
+//   - body: The error body content
+//   - headers: Optional key-value pairs of HTTP headers (must be even number of arguments)
+//
+// Returns:
+//   - error: A new error instance
+//
+// Panics:
+//   - If the number of header arguments is odd
 func NewError(statusCode int, body any, headers ...string) error {
 	err := &defaultError{
 		statusCode: statusCode,
@@ -39,38 +75,72 @@ func NewError(statusCode int, body any, headers ...string) error {
 	return err
 }
 
+// Error returns a string representation of the error, including status code and body.
+//
+// Returns:
+//   - string: Formatted error message
 func (e *defaultError) Error() string {
 	return fmt.Sprintf("goose: http error, status code: %d, body: %s", e.statusCode, e.body)
 }
 
+// StatusCode returns the HTTP status code associated with this error.
+//
+// Returns:
+//   - int: The HTTP status code
 func (e *defaultError) StatusCode() int {
 	return e.statusCode
 }
 
+// SetStatusCode sets the HTTP status code for this error.
+//
+// Parameters:
+//   - code: The HTTP status code to set
 func (e *defaultError) SetStatusCode(code int) {
 	e.statusCode = code
 }
 
+// Headers returns the HTTP headers associated with this error.
+//
+// Returns:
+//   - http.Header: The HTTP headers
 func (e *defaultError) Headers() http.Header {
 	return e.headers
 }
 
+// SetHeaders sets the HTTP headers for this error.
+//
+// Parameters:
+//   - h: The HTTP headers to set
 func (e *defaultError) SetHeaders(h http.Header) {
 	e.headers = h
 }
 
+// MarshalJSON marshals the error body as JSON.
+//
+// Returns:
+//   - []byte: The JSON-encoded error body
+//   - error: Any error that occurred during marshaling
 func (e *defaultError) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.body)
 }
 
+// UnmarshalJSON unmarshals JSON data into the error body.
+//
+// Parameters:
+//   - data: The JSON data to unmarshal
+//
+// Returns:
+//   - error: Any error that occurred during unmarshaling
 func (e *defaultError) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &e.body)
 }
 
+// StatusCodeGetter defines an interface for errors that can provide a status code.
 type StatusCodeGetter interface {
 	StatusCode() int
 }
 
+// HeaderGetter defines an interface for errors that can provide HTTP headers.
 type HeaderGetter interface {
 	Headers() http.Header
 }
@@ -82,10 +152,9 @@ type HeaderGetter interface {
 // - StatusCode() int: uses custom status code if implemented
 //
 // Parameters:
-//
-//	ctx - context.Context for the request
-//	err - error to encode
-//	w - http.ResponseWriter to write the error response
+//   - ctx: context.Context for the request
+//   - respErr: error to encode
+//   - response: http.ResponseWriter to write the error response
 func DefaultEncodeError(ctx context.Context, respErr error, response http.ResponseWriter) {
 	// Default to 500 status code unless error provides specific status code
 	code := http.StatusInternalServerError
@@ -128,18 +197,35 @@ func DefaultEncodeError(ctx context.Context, respErr error, response http.Respon
 	}
 }
 
+// StatusCodeSetter defines an interface for errors that can have their status code set.
 type StatusCodeSetter interface {
 	SetStatusCode(code int)
 }
 
+// HeaderSetter defines an interface for errors that can have their headers set.
 type HeaderSetter interface {
 	SetHeaders(h http.Header)
 }
 
+// DefaultErrorFactory creates a new defaultError instance.
+//
+// Returns:
+//   - error: A new defaultError instance
 func DefaultErrorFactory() error {
 	return &defaultError{}
 }
 
+// DefaultDecodeError decodes errors from HTTP responses. It extracts error information
+// including status code, headers, and body from the response.
+//
+// Parameters:
+//   - ctx: The context.Context for the request
+//   - response: The http.Response to decode the error from
+//   - factory: The ErrorFactory used to create a new error instance
+//
+// Returns:
+//   - error: The decoded error, or nil if decoding failed
+//   - bool: True if decoding was successful, false otherwise
 func DefaultDecodeError(ctx context.Context, response *http.Response, factory ErrorFactory) (error, bool) {
 	keysJson := response.Header.Get(ErrorKey)
 	if keysJson == "" {

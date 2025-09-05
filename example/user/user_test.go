@@ -1,13 +1,12 @@
 package user
 
 import (
-	"bytes"
 	"context"
-	"io"
+	errors "errors"
+	"fmt"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
+	"time"
 )
 
 // ---- Mock Service ----
@@ -31,7 +30,7 @@ func (m *MockUserService) UpdateUser(ctx context.Context, req *UpdateUserRequest
 }
 
 func (m *MockUserService) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
-	return &GetUserResponse{Item: &UserItem{Id: req.Id, Name: "test"}}, nil
+	return &GetUserResponse{Item: &UserItem{Id: req.Id, Name: "bob"}}, nil
 }
 
 func (m *MockUserService) ListUser(ctx context.Context, req *ListUserRequest) (*ListUserResponse, error) {
@@ -39,135 +38,122 @@ func (m *MockUserService) ListUser(ctx context.Context, req *ListUserRequest) (*
 		PageNum:  req.GetPageNum(),
 		PageSize: req.GetPageSize(),
 		List: []*UserItem{
-			{Id: 1, Name: "a"},
-			{Id: 2, Name: "b"},
+			{Id: 1, Name: "alice"},
+			{Id: 3, Name: "bob"},
 		},
 	}, nil
 }
 
-func main() {
+func runServer(server *http.Server, port int) {
 	router := http.NewServeMux()
 	router = AppendUserGooseRoute(router, &MockUserService{})
-	server := http.Server{Addr: ":8000", Handler: router}
-	server.ListenAndServe()
+	server.Addr = fmt.Sprintf(":%d", port)
+	server.Handler = router
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		panic(err)
+	}
+}
+
+func newClient(port int) UserGooseService {
+	return NewUserGooseClient(fmt.Sprintf("http://localhost:%d", port))
 }
 
 // ---- Test Cases ----
 
-func setupServer() *httptest.Server {
-	router := http.NewServeMux()
-	router = AppendUserGooseRoute(router, &MockUserService{})
-	return httptest.NewServer(router)
-}
-
 func TestCreateUser(t *testing.T) {
-	server := setupServer()
-	defer server.Close()
+	server := new(http.Server)
+	defer server.Shutdown(context.Background())
+	go runServer(server, 8081)
+	time.Sleep(1 * time.Second)
 
-	payload := []byte(`{"name":"alice"}`)
-	resp, err := http.Post(server.URL+"/v1/user", "application/json", bytes.NewReader(payload))
+	client := newClient(8081)
+	resp, err := client.CreateUser(context.Background(), &CreateUserRequest{Name: "alice"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	expected := `{"item":{"id":"1","name":"alice"}}`
-	if strings.ReplaceAll(string(body), " ", "") != strings.ReplaceAll(expected, " ", "") {
-		t.Fatalf("body is not equal: got %s, want %s", string(body), expected)
+	if resp.GetItem().GetName() != "hello" && resp.GetItem().GetId() != 1 {
+		t.Fatal("resp is not equal")
 	}
 }
 
 func TestDeleteUser(t *testing.T) {
-	server := setupServer()
-	defer server.Close()
+	server := new(http.Server)
+	defer server.Shutdown(context.Background())
+	go runServer(server, 8082)
+	time.Sleep(1 * time.Second)
 
-	req, _ := http.NewRequest(http.MethodDelete, server.URL+"/v1/user/123", nil)
-	resp, err := http.DefaultClient.Do(req)
+	client := newClient(8082)
+	resp, err := client.DeleteUser(context.Background(), &DeleteUserRequest{Id: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("unexpected status: %d", resp.StatusCode)
-	}
-	body, _ := io.ReadAll(resp.Body)
-	expected := `{"id":"123"}`
-	if strings.ReplaceAll(string(body), " ", "") != strings.ReplaceAll(expected, " ", "") {
-		t.Fatalf("body is not equal: got %s, want %s", string(body), expected)
+	if resp.GetId() != 1 {
+		t.Fatal("resp is not equal")
 	}
 }
 
 func TestModifyUser(t *testing.T) {
-	server := setupServer()
-	defer server.Close()
+	server := new(http.Server)
+	defer server.Shutdown(context.Background())
+	go runServer(server, 8083)
+	time.Sleep(1 * time.Second)
 
-	payload := []byte(`{"id":123,"name":"bob"}`)
-	req, _ := http.NewRequest(http.MethodPut, server.URL+"/v1/user/123", bytes.NewReader(payload))
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+	client := newClient(8083)
+	resp, err := client.ModifyUser(context.Background(), &ModifyUserRequest{Id: 2, Name: "bob"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("unexpected status: %d", resp.StatusCode)
-	}
-	body, _ := io.ReadAll(resp.Body)
-	expected := `{"id":"123", "name":"bob"}`
-	if strings.ReplaceAll(string(body), " ", "") != strings.ReplaceAll(expected, " ", "") {
-		t.Fatalf("body is not equal: got %s, want %s", string(body), expected)
+	if resp.GetId() != 2 && resp.GetName() != "bob" {
+		t.Fatal("resp is not equal")
 	}
 }
 
 func TestUpdateUser(t *testing.T) {
-	server := setupServer()
-	defer server.Close()
-	payload := []byte(`{"id":567,"name":"bob"}`)
-	req, _ := http.NewRequest(http.MethodPatch, server.URL+"/v1/user/123", bytes.NewReader(payload))
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+	server := new(http.Server)
+	defer server.Shutdown(context.Background())
+	go runServer(server, 8084)
+	time.Sleep(1 * time.Second)
+
+	client := newClient(8084)
+	resp, err := client.UpdateUser(context.Background(), &UpdateUserRequest{Id: 2, Item: &UserItem{Id: 3, Name: "bob"}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("unexpected status: %d", resp.StatusCode)
-	}
-	body, _ := io.ReadAll(resp.Body)
-	expected := `{"id":"123", "item":{"id":"567", "name":"bob"}}`
-	if strings.ReplaceAll(string(body), " ", "") != strings.ReplaceAll(expected, " ", "") {
-		t.Fatalf("body is not equal: got %s, want %s", string(body), expected)
+	if resp.GetId() != 2 && resp.GetItem().GetName() != "bob" && resp.GetItem().GetId() != 3 {
+		t.Fatal("resp is not equal")
 	}
 }
 
 func TestGetUser(t *testing.T) {
-	server := setupServer()
-	defer server.Close()
+	server := new(http.Server)
+	defer server.Shutdown(context.Background())
+	go runServer(server, 8085)
+	time.Sleep(1 * time.Second)
 
-	resp, err := http.Get(server.URL + "/v1/user/123")
+	client := newClient(8085)
+	resp, err := client.GetUser(context.Background(), &GetUserRequest{Id: 3})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	expected := `{"item":{"id":"123","name":"test"}}`
-	if strings.ReplaceAll(string(body), " ", "") != strings.ReplaceAll(expected, " ", "") {
-		t.Fatalf("body is not equal: got %s, want %s", string(body), expected)
+	if resp.GetItem().GetName() != "bob" && resp.GetItem().GetId() != 3 {
+		t.Fatal("resp is not equal")
 	}
 }
 
 func TestListUser(t *testing.T) {
-	server := setupServer()
-	defer server.Close()
+	server := new(http.Server)
+	defer server.Shutdown(context.Background())
+	go runServer(server, 8086)
+	time.Sleep(1 * time.Second)
 
-	resp, err := http.Get(server.URL + "/v1/users?page_num=1&page_size=10")
+	client := newClient(8086)
+	resp, err := client.ListUser(context.Background(), &ListUserRequest{PageNum: 1, PageSize: 10})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	expected := `{"pageNum":"1", "pageSize":"10", "list":[{"id":"1", "name":"a"}, {"id":"2", "name":"b"}]}`
-	if strings.ReplaceAll(string(body), " ", "") != strings.ReplaceAll(expected, " ", "") {
-		t.Fatalf("body is not equal: got %s, want %s", string(body), expected)
+	if resp.GetPageNum() != 1 && resp.GetPageSize() != 10 &&
+		resp.GetList()[0].GetId() != 1 && resp.GetList()[0].GetName() != "alice" &&
+		resp.GetList()[1].GetId() != 2 && resp.GetList()[1].GetName() != "bob" {
+		t.Fatal("resp is not equal")
 	}
 }

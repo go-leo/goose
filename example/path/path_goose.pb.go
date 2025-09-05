@@ -284,12 +284,12 @@ func (decoder int32PathGooseRequestDecoder) Int32Path(ctx context.Context, reque
 	}
 	vars := goose.FormFromPath(request, "int32", "sint32", "sfixed32", "opt_int32", "opt_sint32", "opt_sfixed32", "wrap_int32")
 	var varErr error
-	req.Int32, varErr = goose.GetForm[int32](varErr, vars, "int32", goose.GetInt32)
-	req.Sint32, varErr = goose.GetForm[int32](varErr, vars, "sint32", goose.GetInt32)
-	req.Sfixed32, varErr = goose.GetForm[int32](varErr, vars, "sfixed32", goose.GetInt32)
-	req.OptInt32, varErr = goose.GetForm[*int32](varErr, vars, "opt_int32", goose.GetInt32Ptr)
-	req.OptSint32, varErr = goose.GetForm[*int32](varErr, vars, "opt_sint32", goose.GetInt32Ptr)
-	req.OptSfixed32, varErr = goose.GetForm[*int32](varErr, vars, "opt_sfixed32", goose.GetInt32Ptr)
+	req.Int32, varErr = goose.GetForm[int32](varErr, vars, "int32", goose.GetInt)
+	req.Sint32, varErr = goose.GetForm[int32](varErr, vars, "sint32", goose.GetInt)
+	req.Sfixed32, varErr = goose.GetForm[int32](varErr, vars, "sfixed32", goose.GetInt)
+	req.OptInt32, varErr = goose.GetForm[*int32](varErr, vars, "opt_int32", goose.GetIntPtr)
+	req.OptSint32, varErr = goose.GetForm[*int32](varErr, vars, "opt_sint32", goose.GetIntPtr)
+	req.OptSfixed32, varErr = goose.GetForm[*int32](varErr, vars, "opt_sfixed32", goose.GetIntPtr)
 	req.WrapInt32, varErr = goose.GetForm[*wrapperspb.Int32Value](varErr, vars, "wrap_int32", goose.GetInt32Value)
 	if varErr != nil {
 		return nil, varErr
@@ -485,12 +485,12 @@ func (decoder int64PathGooseRequestDecoder) Int64Path(ctx context.Context, reque
 	}
 	vars := goose.FormFromPath(request, "int64", "sint64", "sfixed64", "opt_int64", "opt_sint64", "opt_sfixed64", "wrap_int64")
 	var varErr error
-	req.Int64, varErr = goose.GetForm[int64](varErr, vars, "int64", goose.GetInt64)
-	req.Sint64, varErr = goose.GetForm[int64](varErr, vars, "sint64", goose.GetInt64)
-	req.Sfixed64, varErr = goose.GetForm[int64](varErr, vars, "sfixed64", goose.GetInt64)
-	req.OptInt64, varErr = goose.GetForm[*int64](varErr, vars, "opt_int64", goose.GetInt64Ptr)
-	req.OptSint64, varErr = goose.GetForm[*int64](varErr, vars, "opt_sint64", goose.GetInt64Ptr)
-	req.OptSfixed64, varErr = goose.GetForm[*int64](varErr, vars, "opt_sfixed64", goose.GetInt64Ptr)
+	req.Int64, varErr = goose.GetForm[int64](varErr, vars, "int64", goose.GetInt)
+	req.Sint64, varErr = goose.GetForm[int64](varErr, vars, "sint64", goose.GetInt)
+	req.Sfixed64, varErr = goose.GetForm[int64](varErr, vars, "sfixed64", goose.GetInt)
+	req.OptInt64, varErr = goose.GetForm[*int64](varErr, vars, "opt_int64", goose.GetIntPtr)
+	req.OptSint64, varErr = goose.GetForm[*int64](varErr, vars, "opt_sint64", goose.GetIntPtr)
+	req.OptSfixed64, varErr = goose.GetForm[*int64](varErr, vars, "opt_sfixed64", goose.GetIntPtr)
 	req.WrapInt64, varErr = goose.GetForm[*wrapperspb.Int64Value](varErr, vars, "wrap_int64", goose.GetInt64Value)
 	if varErr != nil {
 		return nil, varErr
@@ -686,10 +686,10 @@ func (decoder uint32PathGooseRequestDecoder) Uint32Path(ctx context.Context, req
 	}
 	vars := goose.FormFromPath(request, "uint32", "fixed32", "opt_uint32", "opt_fixed32", "wrap_uint32")
 	var varErr error
-	req.Uint32, varErr = goose.GetForm[uint32](varErr, vars, "uint32", goose.GetUint32)
-	req.Fixed32, varErr = goose.GetForm[uint32](varErr, vars, "fixed32", goose.GetUint32)
-	req.OptUint32, varErr = goose.GetForm[*uint32](varErr, vars, "opt_uint32", goose.GetUint32Ptr)
-	req.OptFixed32, varErr = goose.GetForm[*uint32](varErr, vars, "opt_fixed32", goose.GetUint32Ptr)
+	req.Uint32, varErr = goose.GetForm[uint32](varErr, vars, "uint32", goose.GetUint)
+	req.Fixed32, varErr = goose.GetForm[uint32](varErr, vars, "fixed32", goose.GetUint)
+	req.OptUint32, varErr = goose.GetForm[*uint32](varErr, vars, "opt_uint32", goose.GetUintPtr)
+	req.OptFixed32, varErr = goose.GetForm[*uint32](varErr, vars, "opt_fixed32", goose.GetUintPtr)
 	req.WrapUint32, varErr = goose.GetForm[*wrapperspb.UInt32Value](varErr, vars, "wrap_uint32", goose.GetUint32Value)
 	if varErr != nil {
 		return nil, varErr
@@ -883,10 +883,10 @@ func (decoder uint64PathGooseRequestDecoder) Uint64Path(ctx context.Context, req
 	}
 	vars := goose.FormFromPath(request, "uint64", "fixed64", "opt_uint64", "opt_fixed64", "wrap_uint64")
 	var varErr error
-	req.Uint64, varErr = goose.GetForm[uint64](varErr, vars, "uint64", goose.GetUint64)
-	req.Fixed64, varErr = goose.GetForm[uint64](varErr, vars, "fixed64", goose.GetUint64)
-	req.OptUint64, varErr = goose.GetForm[*uint64](varErr, vars, "opt_uint64", goose.GetUint64Ptr)
-	req.OptFixed64, varErr = goose.GetForm[*uint64](varErr, vars, "opt_fixed64", goose.GetUint64Ptr)
+	req.Uint64, varErr = goose.GetForm[uint64](varErr, vars, "uint64", goose.GetUint)
+	req.Fixed64, varErr = goose.GetForm[uint64](varErr, vars, "fixed64", goose.GetUint)
+	req.OptUint64, varErr = goose.GetForm[*uint64](varErr, vars, "opt_uint64", goose.GetUintPtr)
+	req.OptFixed64, varErr = goose.GetForm[*uint64](varErr, vars, "opt_fixed64", goose.GetUintPtr)
 	req.WrapUint64, varErr = goose.GetForm[*wrapperspb.UInt64Value](varErr, vars, "wrap_uint64", goose.GetUint64Value)
 	if varErr != nil {
 		return nil, varErr
@@ -1080,8 +1080,8 @@ func (decoder floatPathGooseRequestDecoder) FloatPath(ctx context.Context, reque
 	}
 	vars := goose.FormFromPath(request, "float", "opt_float", "wrap_float")
 	var varErr error
-	req.Float, varErr = goose.GetForm[float32](varErr, vars, "float", goose.GetFloat32)
-	req.OptFloat, varErr = goose.GetForm[*float32](varErr, vars, "opt_float", goose.GetFloat32Ptr)
+	req.Float, varErr = goose.GetForm[float32](varErr, vars, "float", goose.GetFloat)
+	req.OptFloat, varErr = goose.GetForm[*float32](varErr, vars, "opt_float", goose.GetFloatPtr)
 	req.WrapFloat, varErr = goose.GetForm[*wrapperspb.FloatValue](varErr, vars, "wrap_float", goose.GetFloat32Value)
 	if varErr != nil {
 		return nil, varErr
@@ -1273,8 +1273,8 @@ func (decoder doublePathGooseRequestDecoder) DoublePath(ctx context.Context, req
 	}
 	vars := goose.FormFromPath(request, "double", "opt_double", "wrap_double")
 	var varErr error
-	req.Double, varErr = goose.GetForm[float64](varErr, vars, "double", goose.GetFloat64)
-	req.OptDouble, varErr = goose.GetForm[*float64](varErr, vars, "opt_double", goose.GetFloat64Ptr)
+	req.Double, varErr = goose.GetForm[float64](varErr, vars, "double", goose.GetFloat)
+	req.OptDouble, varErr = goose.GetForm[*float64](varErr, vars, "opt_double", goose.GetFloatPtr)
 	req.WrapDouble, varErr = goose.GetForm[*wrapperspb.DoubleValue](varErr, vars, "wrap_double", goose.GetFloat64Value)
 	if varErr != nil {
 		return nil, varErr

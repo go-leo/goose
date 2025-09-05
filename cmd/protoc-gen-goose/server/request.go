@@ -125,39 +125,39 @@ func (generator *Generator) PrintPathField(g *protogen.GeneratedFile, pathFields
 			}
 		case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind: // int32
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetInt32PtrIdent, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetIntPtrIdent, fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetInt32Ident, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetIntIdent, fieldName, form, errName)
 			}
 		case protoreflect.Uint32Kind, protoreflect.Fixed32Kind: // uint32
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUint32PtrIdent, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUintPtrIdent, fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUint32Ident, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUintIdent, fieldName, form, errName)
 			}
 		case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind: // int64
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetInt64PtrIdent, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetIntPtrIdent, fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetInt64Ident, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetIntIdent, fieldName, form, errName)
 			}
 		case protoreflect.Uint64Kind, protoreflect.Fixed64Kind: // uint64
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUint64PtrIdent, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUintPtrIdent, fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUint64Ident, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUintIdent, fieldName, form, errName)
 			}
 		case protoreflect.FloatKind: // float32
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloat32PtrIdent, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloatPtrIdent, fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloat32Ident, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloatIdent, fieldName, form, errName)
 			}
 		case protoreflect.DoubleKind: // float64
 			if pointer {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloat64PtrIdent, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloatPtrIdent, fieldName, form, errName)
 			} else {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloat64Ident, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloatIdent, fieldName, form, errName)
 			}
 		case protoreflect.StringKind: // string
 			generator.PrintStringValueAssign(g, tgtValue, srcValue, pointer)
@@ -225,62 +225,62 @@ func (generator *Generator) PrintQueryField(g *protogen.GeneratedFile, queryFiel
 			}
 		case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind: // int32
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetInt32SliceIdent, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetIntSliceIdent, fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetInt32PtrIdent, fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetIntPtrIdent, fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetInt32Ident, fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetIntIdent, fieldName, form, errName)
 				}
 			}
 		case protoreflect.Uint32Kind, protoreflect.Fixed32Kind: // uint32
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUint32SliceIdent, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUintSliceIdent, fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUint32PtrIdent, fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUintPtrIdent, fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUint32Ident, fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUintIdent, fieldName, form, errName)
 				}
 			}
 		case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind: // int64
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetInt64SliceIdent, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetIntSliceIdent, fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetInt64PtrIdent, fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetIntPtrIdent, fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetInt64Ident, fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetIntIdent, fieldName, form, errName)
 				}
 			}
 		case protoreflect.Uint64Kind, protoreflect.Fixed64Kind: // uint64
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUint64SliceIdent, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUintSliceIdent, fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUint64PtrIdent, fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUintPtrIdent, fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUint64Ident, fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetUintIdent, fieldName, form, errName)
 				}
 			}
 		case protoreflect.FloatKind: // float32
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloat32SliceIdent, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloatSliceIdent, fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloat32PtrIdent, fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloatPtrIdent, fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloat32Ident, fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloatIdent, fieldName, form, errName)
 				}
 			}
 		case protoreflect.DoubleKind: // float64
 			if field.Desc.IsList() {
-				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloat64SliceIdent, fieldName, form, errName)
+				generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloatSliceIdent, fieldName, form, errName)
 			} else {
 				if pointer {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloat64PtrIdent, fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloatPtrIdent, fieldName, form, errName)
 				} else {
-					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloat64Ident, fieldName, form, errName)
+					generator.PrintFieldAssign(g, tgtErrValue, goType, gen.GetFloatIdent, fieldName, form, errName)
 				}
 			}
 		case protoreflect.StringKind: // string

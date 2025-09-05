@@ -237,7 +237,7 @@ func (decoder userGooseRequestDecoder) DeleteUser(ctx context.Context, request *
 	}
 	vars := goose.FormFromPath(request, "id")
 	var varErr error
-	req.Id, varErr = goose.GetForm[int64](varErr, vars, "id", goose.GetInt64)
+	req.Id, varErr = goose.GetForm[int64](varErr, vars, "id", goose.GetInt)
 	if varErr != nil {
 		return nil, varErr
 	}
@@ -257,7 +257,7 @@ func (decoder userGooseRequestDecoder) ModifyUser(ctx context.Context, request *
 	}
 	vars := goose.FormFromPath(request, "id")
 	var varErr error
-	req.Id, varErr = goose.GetForm[int64](varErr, vars, "id", goose.GetInt64)
+	req.Id, varErr = goose.GetForm[int64](varErr, vars, "id", goose.GetInt)
 	if varErr != nil {
 		return nil, varErr
 	}
@@ -280,7 +280,7 @@ func (decoder userGooseRequestDecoder) UpdateUser(ctx context.Context, request *
 	}
 	vars := goose.FormFromPath(request, "id")
 	var varErr error
-	req.Id, varErr = goose.GetForm[int64](varErr, vars, "id", goose.GetInt64)
+	req.Id, varErr = goose.GetForm[int64](varErr, vars, "id", goose.GetInt)
 	if varErr != nil {
 		return nil, varErr
 	}
@@ -297,7 +297,7 @@ func (decoder userGooseRequestDecoder) GetUser(ctx context.Context, request *htt
 	}
 	vars := goose.FormFromPath(request, "id")
 	var varErr error
-	req.Id, varErr = goose.GetForm[int64](varErr, vars, "id", goose.GetInt64)
+	req.Id, varErr = goose.GetForm[int64](varErr, vars, "id", goose.GetInt)
 	if varErr != nil {
 		return nil, varErr
 	}
@@ -314,8 +314,8 @@ func (decoder userGooseRequestDecoder) ListUser(ctx context.Context, request *ht
 	}
 	queries := request.URL.Query()
 	var queryErr error
-	req.PageNum, queryErr = goose.GetForm[int64](queryErr, queries, "page_num", goose.GetInt64)
-	req.PageSize, queryErr = goose.GetForm[int64](queryErr, queries, "page_size", goose.GetInt64)
+	req.PageNum, queryErr = goose.GetForm[int64](queryErr, queries, "page_num", goose.GetInt)
+	req.PageSize, queryErr = goose.GetForm[int64](queryErr, queries, "page_size", goose.GetInt)
 	if queryErr != nil {
 		return nil, queryErr
 	}

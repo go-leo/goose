@@ -283,16 +283,16 @@ func (decoder int32QueryGooseRequestDecoder) Int32Query(ctx context.Context, req
 	}
 	queries := request.URL.Query()
 	var queryErr error
-	req.Int32, queryErr = goose.GetForm[int32](queryErr, queries, "int32", goose.GetInt32)
-	req.Sint32, queryErr = goose.GetForm[int32](queryErr, queries, "sint32", goose.GetInt32)
-	req.Sfixed32, queryErr = goose.GetForm[int32](queryErr, queries, "sfixed32", goose.GetInt32)
-	req.OptInt32, queryErr = goose.GetForm[*int32](queryErr, queries, "opt_int32", goose.GetInt32Ptr)
-	req.OptSint32, queryErr = goose.GetForm[*int32](queryErr, queries, "opt_sint32", goose.GetInt32Ptr)
-	req.OptSfixed32, queryErr = goose.GetForm[*int32](queryErr, queries, "opt_sfixed32", goose.GetInt32Ptr)
+	req.Int32, queryErr = goose.GetForm[int32](queryErr, queries, "int32", goose.GetInt)
+	req.Sint32, queryErr = goose.GetForm[int32](queryErr, queries, "sint32", goose.GetInt)
+	req.Sfixed32, queryErr = goose.GetForm[int32](queryErr, queries, "sfixed32", goose.GetInt)
+	req.OptInt32, queryErr = goose.GetForm[*int32](queryErr, queries, "opt_int32", goose.GetIntPtr)
+	req.OptSint32, queryErr = goose.GetForm[*int32](queryErr, queries, "opt_sint32", goose.GetIntPtr)
+	req.OptSfixed32, queryErr = goose.GetForm[*int32](queryErr, queries, "opt_sfixed32", goose.GetIntPtr)
 	req.WrapInt32, queryErr = goose.GetForm[*wrapperspb.Int32Value](queryErr, queries, "wrap_int32", goose.GetInt32Value)
-	req.ListInt32, queryErr = goose.GetForm[[]int32](queryErr, queries, "list_int32", goose.GetInt32Slice)
-	req.ListSint32, queryErr = goose.GetForm[[]int32](queryErr, queries, "list_sint32", goose.GetInt32Slice)
-	req.ListSfixed32, queryErr = goose.GetForm[[]int32](queryErr, queries, "list_sfixed32", goose.GetInt32Slice)
+	req.ListInt32, queryErr = goose.GetForm[[]int32](queryErr, queries, "list_int32", goose.GetIntSlice)
+	req.ListSint32, queryErr = goose.GetForm[[]int32](queryErr, queries, "list_sint32", goose.GetIntSlice)
+	req.ListSfixed32, queryErr = goose.GetForm[[]int32](queryErr, queries, "list_sfixed32", goose.GetIntSlice)
 	req.ListWrapInt32, queryErr = goose.GetForm[[]*wrapperspb.Int32Value](queryErr, queries, "list_wrap_int32", goose.GetInt32ValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
@@ -487,16 +487,16 @@ func (decoder int64QueryGooseRequestDecoder) Int64Query(ctx context.Context, req
 	}
 	queries := request.URL.Query()
 	var queryErr error
-	req.Int64, queryErr = goose.GetForm[int64](queryErr, queries, "int64", goose.GetInt64)
-	req.Sint64, queryErr = goose.GetForm[int64](queryErr, queries, "sint64", goose.GetInt64)
-	req.Sfixed64, queryErr = goose.GetForm[int64](queryErr, queries, "sfixed64", goose.GetInt64)
-	req.OptInt64, queryErr = goose.GetForm[*int64](queryErr, queries, "opt_int64", goose.GetInt64Ptr)
-	req.OptSint64, queryErr = goose.GetForm[*int64](queryErr, queries, "opt_sint64", goose.GetInt64Ptr)
-	req.OptSfixed64, queryErr = goose.GetForm[*int64](queryErr, queries, "opt_sfixed64", goose.GetInt64Ptr)
+	req.Int64, queryErr = goose.GetForm[int64](queryErr, queries, "int64", goose.GetInt)
+	req.Sint64, queryErr = goose.GetForm[int64](queryErr, queries, "sint64", goose.GetInt)
+	req.Sfixed64, queryErr = goose.GetForm[int64](queryErr, queries, "sfixed64", goose.GetInt)
+	req.OptInt64, queryErr = goose.GetForm[*int64](queryErr, queries, "opt_int64", goose.GetIntPtr)
+	req.OptSint64, queryErr = goose.GetForm[*int64](queryErr, queries, "opt_sint64", goose.GetIntPtr)
+	req.OptSfixed64, queryErr = goose.GetForm[*int64](queryErr, queries, "opt_sfixed64", goose.GetIntPtr)
 	req.WrapInt64, queryErr = goose.GetForm[*wrapperspb.Int64Value](queryErr, queries, "wrap_int64", goose.GetInt64Value)
-	req.ListInt64, queryErr = goose.GetForm[[]int64](queryErr, queries, "list_int64", goose.GetInt64Slice)
-	req.ListSint64, queryErr = goose.GetForm[[]int64](queryErr, queries, "list_sint64", goose.GetInt64Slice)
-	req.ListSfixed64, queryErr = goose.GetForm[[]int64](queryErr, queries, "list_sfixed64", goose.GetInt64Slice)
+	req.ListInt64, queryErr = goose.GetForm[[]int64](queryErr, queries, "list_int64", goose.GetIntSlice)
+	req.ListSint64, queryErr = goose.GetForm[[]int64](queryErr, queries, "list_sint64", goose.GetIntSlice)
+	req.ListSfixed64, queryErr = goose.GetForm[[]int64](queryErr, queries, "list_sfixed64", goose.GetIntSlice)
 	req.ListWrapInt64, queryErr = goose.GetForm[[]*wrapperspb.Int64Value](queryErr, queries, "list_wrap_int64", goose.GetInt64ValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
@@ -691,13 +691,13 @@ func (decoder uint32QueryGooseRequestDecoder) Uint32Query(ctx context.Context, r
 	}
 	queries := request.URL.Query()
 	var queryErr error
-	req.Uint32, queryErr = goose.GetForm[uint32](queryErr, queries, "uint32", goose.GetUint32)
-	req.Fixed32, queryErr = goose.GetForm[uint32](queryErr, queries, "fixed32", goose.GetUint32)
-	req.OptUint32, queryErr = goose.GetForm[*uint32](queryErr, queries, "opt_uint32", goose.GetUint32Ptr)
-	req.OptFixed32, queryErr = goose.GetForm[*uint32](queryErr, queries, "opt_fixed32", goose.GetUint32Ptr)
+	req.Uint32, queryErr = goose.GetForm[uint32](queryErr, queries, "uint32", goose.GetUint)
+	req.Fixed32, queryErr = goose.GetForm[uint32](queryErr, queries, "fixed32", goose.GetUint)
+	req.OptUint32, queryErr = goose.GetForm[*uint32](queryErr, queries, "opt_uint32", goose.GetUintPtr)
+	req.OptFixed32, queryErr = goose.GetForm[*uint32](queryErr, queries, "opt_fixed32", goose.GetUintPtr)
 	req.WrapUint32, queryErr = goose.GetForm[*wrapperspb.UInt32Value](queryErr, queries, "wrap_uint32", goose.GetUint32Value)
-	req.ListUint32, queryErr = goose.GetForm[[]uint32](queryErr, queries, "list_uint32", goose.GetUint32Slice)
-	req.ListFixed32, queryErr = goose.GetForm[[]uint32](queryErr, queries, "list_fixed32", goose.GetUint32Slice)
+	req.ListUint32, queryErr = goose.GetForm[[]uint32](queryErr, queries, "list_uint32", goose.GetUintSlice)
+	req.ListFixed32, queryErr = goose.GetForm[[]uint32](queryErr, queries, "list_fixed32", goose.GetUintSlice)
 	req.ListWrapUint32, queryErr = goose.GetForm[[]*wrapperspb.UInt32Value](queryErr, queries, "list_wrap_uint32", goose.GetUint32ValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
@@ -889,13 +889,13 @@ func (decoder uint64QueryGooseRequestDecoder) Uint64Query(ctx context.Context, r
 	}
 	queries := request.URL.Query()
 	var queryErr error
-	req.Uint64, queryErr = goose.GetForm[uint64](queryErr, queries, "uint64", goose.GetUint64)
-	req.Fixed64, queryErr = goose.GetForm[uint64](queryErr, queries, "fixed64", goose.GetUint64)
-	req.OptUint64, queryErr = goose.GetForm[*uint64](queryErr, queries, "opt_uint64", goose.GetUint64Ptr)
-	req.OptFixed64, queryErr = goose.GetForm[*uint64](queryErr, queries, "opt_fixed64", goose.GetUint64Ptr)
+	req.Uint64, queryErr = goose.GetForm[uint64](queryErr, queries, "uint64", goose.GetUint)
+	req.Fixed64, queryErr = goose.GetForm[uint64](queryErr, queries, "fixed64", goose.GetUint)
+	req.OptUint64, queryErr = goose.GetForm[*uint64](queryErr, queries, "opt_uint64", goose.GetUintPtr)
+	req.OptFixed64, queryErr = goose.GetForm[*uint64](queryErr, queries, "opt_fixed64", goose.GetUintPtr)
 	req.WrapUint64, queryErr = goose.GetForm[*wrapperspb.UInt64Value](queryErr, queries, "wrap_uint64", goose.GetUint64Value)
-	req.ListUint64, queryErr = goose.GetForm[[]uint64](queryErr, queries, "list_uint64", goose.GetUint64Slice)
-	req.ListFixed64, queryErr = goose.GetForm[[]uint64](queryErr, queries, "list_fixed64", goose.GetUint64Slice)
+	req.ListUint64, queryErr = goose.GetForm[[]uint64](queryErr, queries, "list_uint64", goose.GetUintSlice)
+	req.ListFixed64, queryErr = goose.GetForm[[]uint64](queryErr, queries, "list_fixed64", goose.GetUintSlice)
 	req.ListWrapUint64, queryErr = goose.GetForm[[]*wrapperspb.UInt64Value](queryErr, queries, "list_wrap_uint64", goose.GetUint64ValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
@@ -1087,10 +1087,10 @@ func (decoder floatQueryGooseRequestDecoder) FloatQuery(ctx context.Context, req
 	}
 	queries := request.URL.Query()
 	var queryErr error
-	req.Float, queryErr = goose.GetForm[float32](queryErr, queries, "float", goose.GetFloat32)
-	req.OptFloat, queryErr = goose.GetForm[*float32](queryErr, queries, "opt_float", goose.GetFloat32Ptr)
+	req.Float, queryErr = goose.GetForm[float32](queryErr, queries, "float", goose.GetFloat)
+	req.OptFloat, queryErr = goose.GetForm[*float32](queryErr, queries, "opt_float", goose.GetFloatPtr)
 	req.WrapFloat, queryErr = goose.GetForm[*wrapperspb.FloatValue](queryErr, queries, "wrap_float", goose.GetFloat32Value)
-	req.ListFloat, queryErr = goose.GetForm[[]float32](queryErr, queries, "list_float", goose.GetFloat32Slice)
+	req.ListFloat, queryErr = goose.GetForm[[]float32](queryErr, queries, "list_float", goose.GetFloatSlice)
 	req.ListWrapFloat, queryErr = goose.GetForm[[]*wrapperspb.FloatValue](queryErr, queries, "list_wrap_float", goose.GetFloat32ValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
@@ -1279,10 +1279,10 @@ func (decoder doubleQueryGooseRequestDecoder) DoubleQuery(ctx context.Context, r
 	}
 	queries := request.URL.Query()
 	var queryErr error
-	req.Double, queryErr = goose.GetForm[float64](queryErr, queries, "double", goose.GetFloat64)
-	req.OptDouble, queryErr = goose.GetForm[*float64](queryErr, queries, "opt_double", goose.GetFloat64Ptr)
+	req.Double, queryErr = goose.GetForm[float64](queryErr, queries, "double", goose.GetFloat)
+	req.OptDouble, queryErr = goose.GetForm[*float64](queryErr, queries, "opt_double", goose.GetFloatPtr)
 	req.WrapDouble, queryErr = goose.GetForm[*wrapperspb.DoubleValue](queryErr, queries, "wrap_double", goose.GetFloat64Value)
-	req.ListDouble, queryErr = goose.GetForm[[]float64](queryErr, queries, "list_double", goose.GetFloat64Slice)
+	req.ListDouble, queryErr = goose.GetForm[[]float64](queryErr, queries, "list_double", goose.GetFloatSlice)
 	req.ListWrapDouble, queryErr = goose.GetForm[[]*wrapperspb.DoubleValue](queryErr, queries, "list_wrap_double", goose.GetFloat64ValueSlice)
 	if queryErr != nil {
 		return nil, queryErr
