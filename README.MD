@@ -1,11 +1,8 @@
 # goose
-goose 通过定义 proto 文件，快速生成基于 Go 1.22 HTTP Router 标准库的Restful服务路由。
-
-# 路由规则
-goose 底层基于 [Go 1.22 HTTP Router](https://go.dev/blog/routing-enhancements) 管理http路由。详细定义规则见[Enhanced ServeMux routing](https://github.com/golang/go/issues/61410)
+goose 通过定义 proto 文件，快速生成基于 Go 1.22 HTTP Router 的Restful服务路由和客户端代码。
 
 # 优点
-1. 基于proto文件，快速生成Restful服务路由
+1. 基于proto文件，快速生成Restful服务路由和客户端
 2. 零配置
 3. 低依赖
 4. 非反射取值，效率非常高
@@ -16,6 +13,11 @@ goose 底层基于 [Go 1.22 HTTP Router](https://go.dev/blog/routing-enhancement
 ```
 go install github.com/go-leo/goose/cmd/protoc-gen-goose@latest
 ```
+
+# 路由规则
+goose 底层基于 [Go 1.22 HTTP Router](https://go.dev/blog/routing-enhancements) 管理http路由。
+## Google Http API Annotations
+[Google Http API Annotations](https://github.com/googleapis/googleapis/blob/master/google/api/annotations.proto)是google定义的可以在proto文件中使用的http路由规则注解。
 
 # Example
 ```protobuf
@@ -139,13 +141,73 @@ message ListUserResponse {
   repeated UserItem list = 3;
 }
 ```
-定义了6个接口：分别是
-1. 创建用户，POST请求
-2. 删除用户，DELETE请求
-3. 修改用户，PUT请求
-4. 更新用户，PATCH请求
-5. 获取用户, GET请求
-6. 获取用户列表, GET请求
+## 1. CreateUser - 创建用户
+- **HTTP 方法**: POST
+- **路由路径**: `/v1/user`
+- **请求体**: 整个请求消息 (`body: "*"`)
+- **示例**:
+  ```
+  POST /v1/user
+  {
+    "name": "Leo"
+  }
+  ```
+
+## 2. DeleteUser - 删除用户
+- **HTTP 方法**: DELETE
+- **路由路径**: `/v1/user/{id}`
+- **路径参数**: `id` 字段从请求消息中提取
+- **示例**:
+  ```
+  DELETE /v1/user/10000
+  ```
+
+## 3. ModifyUser - 修改用户
+- **HTTP 方法**: PUT
+- **路由路径**: `/v1/user/{id}`
+- **路径参数**: `id` 字段从请求消息中提取
+- **请求体**: 整个请求消息 (`body: "*"`)
+- **示例**:
+  ```
+  PUT /v1/user/10000
+  {
+    "name": "Leo"
+  }
+  ```
+
+## 4. UpdateUser - 更新用户
+- **HTTP 方法**: PATCH
+- **路由路径**: `/v1/user/{id}`
+- **路径参数**: `id` 字段从请求消息中提取
+- **请求体**: 仅 `item` 字段 (`body: "item"`)
+- **示例**:
+  ```
+  PATCH /v1/user/10000
+  {
+    "item": {
+      "id": 9999,
+      "name": "Leo"
+    }
+  }
+  ```
+
+## 5. GetUser - 获取用户
+- **HTTP 方法**: GET
+- **路由路径**: `/v1/user/{id}`
+- **路径参数**: `id` 字段从请求消息中提取
+- **示例**:
+  ```
+  GET /v1/user/10000
+  ```
+
+## 6. ListUser - 获取用户列表
+- **HTTP 方法**: GET
+- **路由路径**: `/v1/users`
+- **查询参数**: `page_num` 和 `page_size` 字段会自动转换为查询参数
+- **示例**:
+  ```
+  GET /v1/users?page_num=1&page_size=10
+  ```
 
 # 生成路由
 执行命令
