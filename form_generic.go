@@ -31,26 +31,7 @@ type FormGetter[T any] func(form url.Values, key string) (T, error)
 //  1. If pre is not nil, returns pre error immediately
 //  2. Otherwise invokes f to get form value
 func GetForm[T any](pre error, form url.Values, key string, f FormGetter[T]) (T, error) {
-	return breakOnError[T](pre)(func() (T, error) { return f(form, key) })
-}
-
-// breakOnError provides error interception functionality
-// Parameters:
-//   - pre: Pre-existing error
-//
-// Returns:
-//
-//	A function that will:
-//	1. Return pre error immediately if pre is not nil
-//	2. Otherwise execute the provided function f
-func breakOnError[T any](pre error) func(f func() (T, error)) (T, error) {
-	return func(f func() (T, error)) (T, error) {
-		if pre != nil {
-			var v T
-			return v, pre
-		}
-		return f()
-	}
+	return BreakOnError[T](pre)(func() (T, error) { return f(form, key) })
 }
 
 // GetInt retrieves and parses a signed integer value from URL form values.

@@ -26,30 +26,6 @@ func TestGetForm(t *testing.T) {
 	}
 }
 
-func TestBreak(t *testing.T) {
-	// pre error
-	pre := errors.New("fail")
-	f := breakOnError[int](pre)
-	v, err := f(func() (int, error) { return 1, nil })
-	if err != pre || v != 0 {
-		t.Errorf("Break with pre error = %v, %v; want 0, pre error", v, err)
-	}
-
-	// no error
-	f = breakOnError[int](nil)
-	v, err = f(func() (int, error) { return 42, nil })
-	if err != nil || v != 42 {
-		t.Errorf("Break = %v, %v; want 42, nil", v, err)
-	}
-
-	// function error
-	f = breakOnError[int](nil)
-	wantErr := errors.New("fail2")
-	v, err = f(func() (int, error) { return 0, wantErr })
-	if err != wantErr {
-		t.Errorf("Break = %v, %v; want 0, wantErr", v, err)
-	}
-}
 
 func TestGetForm_GenericType(t *testing.T) {
 	form := url.Values{}
@@ -96,8 +72,8 @@ func TestFormGetter_Type(t *testing.T) {
 }
 
 func TestBreak_Type(t *testing.T) {
-	_ = breakOnError[int]
-	_ = breakOnError[string]
+	_ = BreakOnError[int]
+	_ = BreakOnError[string]
 }
 
 func TestGetInt(t *testing.T) {
