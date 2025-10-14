@@ -3,19 +3,20 @@ package client
 import (
 	"fmt"
 
-	"github.com/go-leo/goose/internal/gen"
+	"github.com/go-leo/goose/cmd/protoc-gen-goose/constant"
+	"github.com/go-leo/goose/cmd/protoc-gen-goose/parser"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (f *Generator) GenerateResponseDecoder(service *gen.Service, g *protogen.GeneratedFile) error {
+func (f *Generator) GenerateResponseDecoder(service *parser.Service, g *protogen.GeneratedFile) error {
 	g.P("type ", service.Unexported(service.ResponseDecoderName()), " struct {")
-	g.P("unmarshalOptions ", gen.ProtoJsonUnmarshalOptionsIdent)
-	g.P("errorDecoder ", gen.ErrorDecoderIdent)
-	g.P("errorFactory ", gen.ErrorFactoryIdent)
+	g.P("unmarshalOptions ", constant.ProtoJsonUnmarshalOptionsIdent)
+	g.P("errorDecoder ", constant.ErrorDecoderIdent)
+	g.P("errorFactory ", constant.ErrorFactoryIdent)
 	g.P("}")
 	for _, endpoint := range service.Endpoints {
-		g.P("func (decoder *", service.Unexported(service.ResponseDecoderName()), ") ", endpoint.Name(), "(ctx ", gen.ContextIdent, ", response *", gen.ResponseIdent, ") (*", endpoint.OutputGoIdent(), ", error){")
+		g.P("func (decoder *", service.Unexported(service.ResponseDecoderName()), ") ", endpoint.Name(), "(ctx ", constant.ContextIdent, ", response *", constant.ResponseIdent, ") (*", endpoint.OutputGoIdent(), ", error){")
 		g.P("if respErr, ok := decoder.errorDecoder(ctx, response, decoder.errorFactory); ok {")
 		g.P("return nil, respErr")
 		g.P("}")
@@ -36,7 +37,7 @@ func (f *Generator) GenerateResponseDecoder(service *gen.Service, g *protogen.Ge
 				f.PrintDecodeMessage(g, srcValue)
 			}
 		default:
-			bodyField := gen.FindField(bodyParameter, endpoint.Output())
+			bodyField := parser.FindField(bodyParameter, endpoint.Output())
 			if bodyField == nil {
 				return fmt.Errorf("%s, failed to find body response field %s", endpoint.FullName(), bodyParameter)
 			}
@@ -63,19 +64,19 @@ func (f *Generator) GenerateResponseDecoder(service *gen.Service, g *protogen.Ge
 }
 
 func (f *Generator) PrintDecodeMessage(g *protogen.GeneratedFile, srcValue []any) {
-	g.P(append(append([]any{"if err := ", gen.DecodeMessageIdent, "(ctx, response, "}, srcValue...), ", decoder.unmarshalOptions); err != nil {")...)
+	g.P(append(append([]any{"if err := ", constant.DecodeMessageIdent, "(ctx, response, "}, srcValue...), ", decoder.unmarshalOptions); err != nil {")...)
 	g.P("return nil, err")
 	g.P("}")
 }
 
 func (f *Generator) DecodeHttpBody(g *protogen.GeneratedFile, srcValue []any) {
-	g.P(append(append([]any{"if err := ", gen.DecodeHttpBodyFromResponseIdent, "(ctx, response, "}, srcValue...), "); err != nil {")...)
+	g.P(append(append([]any{"if err := ", constant.DecodeHttpBodyFromResponseIdent, "(ctx, response, "}, srcValue...), "); err != nil {")...)
 	g.P("return nil, err")
 	g.P("}")
 }
 
 func (f *Generator) DecodeHttpResponse(g *protogen.GeneratedFile, srcValue []any) {
-	g.P(append(append([]any{"if err := ", gen.DecodeHttpResponseIdent, "(ctx, response, "}, srcValue...), "); err != nil {")...)
+	g.P(append(append([]any{"if err := ", constant.DecodeHttpResponseIdent, "(ctx, response, "}, srcValue...), "); err != nil {")...)
 	g.P("return nil, err")
 	g.P("}")
 }

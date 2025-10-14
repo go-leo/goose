@@ -3,18 +3,19 @@ package server
 import (
 	"fmt"
 
-	"github.com/go-leo/goose/internal/gen"
+	"github.com/go-leo/goose/cmd/protoc-gen-goose/constant"
+	"github.com/go-leo/goose/cmd/protoc-gen-goose/parser"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func (generator *Generator) GenerateEncodeResponse(service *gen.Service, g *protogen.GeneratedFile) error {
+func (generator *Generator) GenerateEncodeResponse(service *parser.Service, g *protogen.GeneratedFile) error {
 	g.P("type ", service.Unexported(service.ResponseEncoderName()), " struct {")
-	g.P("marshalOptions ", gen.ProtoJsonMarshalOptionsIdent)
-	g.P("unmarshalOptions ", gen.ProtoJsonUnmarshalOptionsIdent)
+	g.P("marshalOptions ", constant.ProtoJsonMarshalOptionsIdent)
+	g.P("unmarshalOptions ", constant.ProtoJsonUnmarshalOptionsIdent)
 	g.P("}")
 	for _, endpoint := range service.Endpoints {
-		g.P("func (encoder ", service.Unexported(service.ResponseEncoderName()), ")", endpoint.Name(), "(ctx ", gen.ContextIdent, ", w ", gen.ResponseWriterIdent, ", resp *", endpoint.OutputGoIdent(), ") error {")
+		g.P("func (encoder ", service.Unexported(service.ResponseEncoderName()), ")", endpoint.Name(), "(ctx ", constant.ContextIdent, ", w ", constant.ResponseWriterIdent, ", resp *", endpoint.OutputGoIdent(), ") error {")
 		bodyParameter := endpoint.ResponseBody()
 		switch bodyParameter {
 		case "", "*":
@@ -31,7 +32,7 @@ func (generator *Generator) GenerateEncodeResponse(service *gen.Service, g *prot
 				generator.PrintResponseEncodeBlock(g, srcValue)
 			}
 		default:
-			bodyField := gen.FindField(bodyParameter, endpoint.Output())
+			bodyField := parser.FindField(bodyParameter, endpoint.Output())
 			if bodyField == nil {
 				return fmt.Errorf("%s, failed to find body response field %s", endpoint.FullName(), bodyParameter)
 			}
@@ -54,13 +55,13 @@ func (generator *Generator) GenerateEncodeResponse(service *gen.Service, g *prot
 }
 
 func (generator *Generator) PrintHttpBodyEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
-	g.P(append(append([]any{"return ", gen.EncodeHttpBodyIdent, "(ctx, w, "}, srcValue...), ")")...)
+	g.P(append(append([]any{"return ", constant.EncodeHttpBodyIdent, "(ctx, w, "}, srcValue...), ")")...)
 }
 
 func (generator *Generator) PrintHttpResponseEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
-	g.P(append(append([]any{"return ", gen.EncodeHttpResponseIdent, "(ctx, w, "}, srcValue...), ")")...)
+	g.P(append(append([]any{"return ", constant.EncodeHttpResponseIdent, "(ctx, w, "}, srcValue...), ")")...)
 }
 
 func (generator *Generator) PrintResponseEncodeBlock(g *protogen.GeneratedFile, srcValue []any) {
-	g.P(append(append([]any{"return ", gen.EncodeResponseIdent, "(ctx, w, "}, srcValue...), ", encoder.marshalOptions)")...)
+	g.P(append(append([]any{"return ", constant.EncodeResponseIdent, "(ctx, w, "}, srcValue...), ", encoder.marshalOptions)")...)
 }

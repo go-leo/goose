@@ -1,4 +1,4 @@
-package gen
+package parser
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 type Endpoint struct {
 	protoMethod *protogen.Method
 	httpRule    *annotations.HttpRule
-	route       *Pattern
+	pattern     *Pattern
 }
 
 func (e *Endpoint) Name() string {
@@ -156,8 +156,8 @@ func (e *Endpoint) ParseParameters() (*protogen.Message, *protogen.Field, []*pro
 }
 
 func (e *Endpoint) PathParameters() ([]string, error) {
-	values := make([]string, 0, len(e.route.segments))
-	for _, segment := range e.route.segments {
+	values := make([]string, 0, len(e.pattern.segments))
+	for _, segment := range e.pattern.segments {
 		if segment.wild {
 			values = append(values, segment.s)
 		}
@@ -165,12 +165,12 @@ func (e *Endpoint) PathParameters() ([]string, error) {
 	return values, nil
 }
 
-func (e *Endpoint) SetPattern(route *Pattern) {
-	e.route = route
+func (e *Endpoint) SetPattern(pattern *Pattern) {
+	e.pattern = pattern
 }
 
 func (e *Endpoint) Pattern() *Pattern {
-	return e.route
+	return e.pattern
 }
 
 func (e *Endpoint) SetHttpRule() {

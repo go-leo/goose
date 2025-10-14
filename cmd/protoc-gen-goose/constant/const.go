@@ -1,4 +1,4 @@
-package gen
+package constant
 
 import (
 	"google.golang.org/protobuf/compiler/protogen"

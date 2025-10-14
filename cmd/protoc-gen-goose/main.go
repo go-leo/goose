@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/go-leo/goose/cmd/protoc-gen-goose/client"
+	"github.com/go-leo/goose/cmd/protoc-gen-goose/parser"
 	"github.com/go-leo/goose/cmd/protoc-gen-goose/server"
-	"github.com/go-leo/goose/internal/gen"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
 )
@@ -35,7 +35,7 @@ func generate(plugin *protogen.Plugin) error {
 		if len(file.Services) <= 0 {
 			continue
 		}
-		services, err := gen.NewServices(file)
+		services, err := parser.NewServices(file)
 		if err != nil {
 			return err
 		}
