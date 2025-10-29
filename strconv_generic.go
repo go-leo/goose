@@ -6,19 +6,18 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// ParseBool converts a string to a boolean value.
-// It wraps strconv.ParseBool to provide the same functionality.
+// ParseBool converts a string to a boolean value of the specified type.
+// It wraps strconv.ParseBool and converts the result to the generic type Bool.
 //
 // Parameters:
-//
-//	s - the string to be parsed into a boolean
+//   - s: the string to be parsed
 //
 // Returns:
-//
-//	bool - the parsed boolean value
-//	error - if parsing fails
-func ParseBool(s string) (bool, error) {
-	return strconv.ParseBool(s)
+//   - Bool: the parsed boolean value
+//   - error: if parsing fails
+func ParseBool[Bool ~bool](s string) (Bool, error) {
+	v, err := strconv.ParseBool(s)
+	return Bool(v), err
 }
 
 // ParseInt converts a string to a signed integer of the specified type.
@@ -78,20 +77,18 @@ func ParseFloat[Float constraints.Float](s string, bitSize int) (Float, error) {
 // Returns nil if the input slice is nil.
 //
 // Parameters:
-//
-//	s - the string slice to be parsed
+//   - s: the string slice to be parsed
 //
 // Returns:
-//
-//	[]bool - the parsed boolean slice
-//	error - if any element fails to parse
-func ParseBoolSlice(s []string) ([]bool, error) {
+//   - []Bool: the parsed boolean slice
+//   - error: if any element fails to parse
+func ParseBoolSlice[Bool ~bool](s []string) ([]Bool, error) {
 	if s == nil {
 		return nil, nil
 	}
-	r := make([]bool, 0, len(s))
+	r := make([]Bool, 0, len(s))
 	for _, str := range s {
-		b, err := strconv.ParseBool(str)
+		b, err := ParseBool[Bool](str)
 		if err != nil {
 			return nil, err
 		}

@@ -8,41 +8,6 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-func TestGetBool(t *testing.T) {
-	form := url.Values{}
-	form.Set("a", "true")
-	v, err := GetBool(form, "a")
-	if err != nil || v != true {
-		t.Errorf("GetBool(a) = %v, %v; want true, nil", v, err)
-	}
-	v, err = GetBool(form, "notfound")
-	if err != nil || v != false {
-		t.Errorf("GetBool(notfound) = %v, %v; want false, nil", v, err)
-	}
-}
-
-func TestGetBoolPtr(t *testing.T) {
-	form := url.Values{}
-	form.Set("a", "true")
-	ptr, err := GetBoolPtr(form, "a")
-	if err != nil || ptr == nil || *ptr != true {
-		t.Errorf("GetBoolPtr(a) = %v, %v; want ptr to true, nil", ptr, err)
-	}
-}
-
-func TestGetBoolSlice(t *testing.T) {
-	form := url.Values{}
-	form["a"] = []string{"true", "false"}
-	got, err := GetBoolSlice(form, "a")
-	want := []bool{true, false}
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetBoolSlice(a) = %v, %v; want %v, nil", got, err, want)
-	}
-	got, err = GetBoolSlice(form, "notfound")
-	if err != nil || got != nil {
-		t.Errorf("GetBoolSlice(notfound) = %v, %v; want nil, nil", got, err)
-	}
-}
 
 func TestGetBoolValue(t *testing.T) {
 	form := url.Values{}

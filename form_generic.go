@@ -34,6 +34,56 @@ func GetForm[T any](pre error, form url.Values, key string, f FormGetter[T]) (T,
 	return BreakOnError[T](pre)(func() (T, error) { return f(form, key) })
 }
 
+// GetBool retrieves and parses a boolean value from URL form values.
+// If the key doesn't exist, returns false.
+//
+// Parameters:
+//   - form: the URL form values
+//   - key: the key to look up in form values
+//
+// Returns:
+//   - Bool: the parsed boolean value
+//   - error: if parsing fails
+func GetBool[Bool ~bool](form url.Values, key string) (Bool, error) {
+	if _, ok := form[key]; !ok {
+		return false, nil
+	}
+	return ParseBool[Bool](form.Get(key))
+}
+
+// GetBoolPtr retrieves and parses a boolean value from URL form values,
+// returning a pointer to the value.
+// If the key doesn't exist, returns a pointer to false.
+//
+// Parameters:
+//   - form: the URL form values
+//   - key: the key to look up in form values
+//
+// Returns:
+//   - *Bool: pointer to the parsed boolean value
+//   - error: if parsing fails
+func GetBoolPtr[Bool ~bool](form url.Values, key string) (*Bool, error) {
+	v, err := GetBool[Bool](form, key)
+	return &v, err
+}
+
+// GetBoolSlice retrieves and parses a slice of booleans from URL form values.
+// If the key doesn't exist, returns nil slice.
+//
+// Parameters:
+//   - form: the URL form values
+//   - key: the key to look up in form values
+//
+// Returns:
+//   - []Bool: the parsed boolean slice
+//   - error: if any element fails to parse
+func GetBoolSlice[Bool ~bool](form url.Values, key string) ([]Bool, error) {
+	if _, ok := form[key]; !ok {
+		return nil, nil
+	}
+	return ParseBoolSlice[Bool](form[key])
+}
+
 // GetInt retrieves and parses a signed integer value from URL form values.
 // If the key doesn't exist, returns zero value of the generic type Signed.
 // Uses ParseInt with base 10 and 64 bit size for conversion.

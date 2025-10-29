@@ -20,7 +20,7 @@ func TestParseBool(t *testing.T) {
 		{"invalid", false, true},
 	}
 	for _, tt := range tests {
-		got, err := ParseBool(tt.in)
+		got, err := ParseBool[bool](tt.in)
 		if (err != nil) != tt.isErr {
 			t.Errorf("ParseBool(%q) error = %v, wantErr %v", tt.in, err, tt.isErr)
 		}
@@ -115,7 +115,7 @@ func TestParseBoolSlice(t *testing.T) {
 		{nil, nil, false},
 	}
 	for _, tt := range tests {
-		got, err := ParseBoolSlice(tt.in)
+		got, err := ParseBoolSlice[bool](tt.in)
 		if (err != nil) != tt.isErr {
 			t.Errorf("ParseBoolSlice(%v) error = %v, wantErr %v", tt.in, err, tt.isErr)
 		}

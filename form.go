@@ -8,59 +8,6 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-// GetBool retrieves a boolean value from URL form values.
-// Returns false if key doesn't exist without error.
-//
-// Parameters:
-//
-//	form - URL form values containing the data
-//	key - form field key to retrieve
-//
-// Returns:
-//
-//	bool - parsed boolean value
-//	error - parsing error if any
-func GetBool(form url.Values, key string) (bool, error) {
-	if _, ok := form[key]; !ok {
-		return false, nil
-	}
-	return strconv.ParseBool(form.Get(key))
-}
-
-// GetBoolPtr retrieves a boolean value from form and returns its pointer.
-//
-// Parameters:
-//
-//	form - URL form values containing the data
-//	key - form field key to retrieve
-//
-// Returns:
-//
-//	*bool - pointer to parsed value
-//	error - parsing error if any
-func GetBoolPtr(form url.Values, key string) (*bool, error) {
-	v, err := GetBool(form, key)
-	return &v, err
-}
-
-// GetBoolSlice retrieves a slice of boolean values from URL form values.
-//
-// Parameters:
-//
-//	form - URL form values containing the data
-//	key - form field key to retrieve
-//
-// Returns:
-//
-//	[]bool - slice of parsed values
-//	error - parsing error if any
-func GetBoolSlice(form url.Values, key string) ([]bool, error) {
-	if _, ok := form[key]; !ok {
-		return nil, nil
-	}
-	return ParseBoolSlice(form[key])
-}
-
 // GetBoolValue retrieves a boolean value wrapped in protobuf BoolValue.
 //
 // Parameters:
@@ -89,7 +36,7 @@ func GetBoolValue(form url.Values, key string) (*wrapperspb.BoolValue, error) {
 //	[]*wrapperspb.BoolValue - slice of protobuf wrapped booleans
 //	error - parsing error if any
 func GetBoolValueSlice(form url.Values, key string) ([]*wrapperspb.BoolValue, error) {
-	v, err := ParseBoolSlice(form[key])
+	v, err := ParseBoolSlice[bool](form[key])
 	return WrapBoolSlice(v), err
 }
 
