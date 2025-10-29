@@ -8,6 +8,7 @@ import (
 	errors "errors"
 	goose "github.com/go-leo/goose"
 	client "github.com/go-leo/goose/client"
+	resolver "github.com/go-leo/goose/client/resolver"
 	server "github.com/go-leo/goose/server"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	protojson "google.golang.org/protobuf/encoding/protojson"
@@ -116,6 +117,7 @@ func NewBoolPathGooseClient(target string, opts ...client.Option) BoolPathGooseS
 		encoder: boolPathGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: boolPathGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -158,15 +160,16 @@ func (c *boolPathGooseClient) BoolPath(ctx context.Context, req *BoolPathRequest
 }
 
 type boolPathGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *boolPathGooseRequestEncoder) BoolPath(ctx context.Context, req *BoolPathRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -313,6 +316,7 @@ func NewInt32PathGooseClient(target string, opts ...client.Option) Int32PathGoos
 		encoder: int32PathGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: int32PathGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -355,15 +359,16 @@ func (c *int32PathGooseClient) Int32Path(ctx context.Context, req *Int32PathRequ
 }
 
 type int32PathGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *int32PathGooseRequestEncoder) Int32Path(ctx context.Context, req *Int32PathRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -514,6 +519,7 @@ func NewInt64PathGooseClient(target string, opts ...client.Option) Int64PathGoos
 		encoder: int64PathGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: int64PathGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -556,15 +562,16 @@ func (c *int64PathGooseClient) Int64Path(ctx context.Context, req *Int64PathRequ
 }
 
 type int64PathGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *int64PathGooseRequestEncoder) Int64Path(ctx context.Context, req *Int64PathRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -713,6 +720,7 @@ func NewUint32PathGooseClient(target string, opts ...client.Option) Uint32PathGo
 		encoder: uint32PathGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: uint32PathGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -755,15 +763,16 @@ func (c *uint32PathGooseClient) Uint32Path(ctx context.Context, req *Uint32PathR
 }
 
 type uint32PathGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *uint32PathGooseRequestEncoder) Uint32Path(ctx context.Context, req *Uint32PathRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -910,6 +919,7 @@ func NewUint64PathGooseClient(target string, opts ...client.Option) Uint64PathGo
 		encoder: uint64PathGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: uint64PathGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -952,15 +962,16 @@ func (c *uint64PathGooseClient) Uint64Path(ctx context.Context, req *Uint64PathR
 }
 
 type uint64PathGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *uint64PathGooseRequestEncoder) Uint64Path(ctx context.Context, req *Uint64PathRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -1105,6 +1116,7 @@ func NewFloatPathGooseClient(target string, opts ...client.Option) FloatPathGoos
 		encoder: floatPathGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: floatPathGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -1147,15 +1159,16 @@ func (c *floatPathGooseClient) FloatPath(ctx context.Context, req *FloatPathRequ
 }
 
 type floatPathGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *floatPathGooseRequestEncoder) FloatPath(ctx context.Context, req *FloatPathRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -1298,6 +1311,7 @@ func NewDoublePathGooseClient(target string, opts ...client.Option) DoublePathGo
 		encoder: doublePathGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: doublePathGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -1340,15 +1354,16 @@ func (c *doublePathGooseClient) DoublePath(ctx context.Context, req *DoublePathR
 }
 
 type doublePathGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *doublePathGooseRequestEncoder) DoublePath(ctx context.Context, req *DoublePathRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -1492,6 +1507,7 @@ func NewStringPathGooseClient(target string, opts ...client.Option) StringPathGo
 		encoder: stringPathGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: stringPathGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -1534,15 +1550,16 @@ func (c *stringPathGooseClient) StringPath(ctx context.Context, req *StringPathR
 }
 
 type stringPathGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *stringPathGooseRequestEncoder) StringPath(ctx context.Context, req *StringPathRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -1685,6 +1702,7 @@ func NewEnumPathGooseClient(target string, opts ...client.Option) EnumPathGooseS
 		encoder: enumPathGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: enumPathGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -1727,15 +1745,16 @@ func (c *enumPathGooseClient) EnumPath(ctx context.Context, req *EnumPathRequest
 }
 
 type enumPathGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *enumPathGooseRequestEncoder) EnumPath(ctx context.Context, req *EnumPathRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}

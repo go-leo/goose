@@ -1,9 +1,11 @@
 package client
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/go-leo/goose"
+	"github.com/go-leo/goose/client/resolver"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -32,33 +34,53 @@ type Options interface {
 
 	// OnValidationErrCallback returns the validation error callback
 	OnValidationErrCallback() goose.OnValidationErrCallback
+
+	// Resolver returns the resolver used for resolving URLs
+	Resolver() resolver.Resolver
 }
 
 // options holds the configuration options for the client
 type options struct {
-	client                  *http.Client                     // HTTP client for making requests
-	unmarshalOptions        protojson.UnmarshalOptions       // Options for unmarshaling protobuf messages
-	marshalOptions          protojson.MarshalOptions         // Options for marshaling protobuf messages
-	errorDecoder            goose.ErrorDecoder               // Decoder for error responses
-	errorFactory            goose.ErrorFactory               // Factory for creating error instances
-	middlewares             []Middleware                     // Middlewares applied to requests
-	shouldFailFast          bool                             // Flag indicating if fail-fast mode is enabled
-	onValidationErrCallback goose.OnValidationErrCallback    // Callback for validation errors
+	client                  *http.Client                  // HTTP client for making requests
+	unmarshalOptions        protojson.UnmarshalOptions    // Options for unmarshaling protobuf messages
+	marshalOptions          protojson.MarshalOptions      // Options for marshaling protobuf messages
+	errorDecoder            goose.ErrorDecoder            // Decoder for error responses
+	errorFactory            goose.ErrorFactory            // Factory for creating error instances
+	middlewares             []Middleware                  // Middlewares applied to requests
+	shouldFailFast          bool                          // Flag indicating if fail-fast mode is enabled
+	onValidationErrCallback goose.OnValidationErrCallback // Callback for validation errors
+	resolver                resolver.Resolver             // Resolver used for resolving URLs
 }
 
 // Option defines a function type for modifying client options
 type Option func(o *options)
 
-// apply applies the given options to the current options struct
+// Apply applies the given options to the current options struct
 //
 // Parameters:
-//   - opts: A variadic list of Option functions to apply
+//   - opts: A variadic list of Option functions to Apply
 //
 // Returns:
 //   - *options: The modified options struct
-func (o *options) apply(opts ...Option) *options {
+func (o *options) Apply(opts ...Option) *options {
 	for _, opt := range opts {
 		opt(o)
+	}
+	return o
+}
+
+func (o *options) Correct() *options {
+	if o.client == nil {
+		o.client = &http.Client{}
+	}
+	if o.errorDecoder == nil {
+		o.errorDecoder = goose.DefaultDecodeError
+	}
+	if o.errorFactory == nil {
+		o.errorFactory = goose.DefaultErrorFactory
+	}
+	if o.onValidationErrCallback == nil {
+		o.onValidationErrCallback = func(ctx context.Context, err error) {}
 	}
 	return o
 }
@@ -125,6 +147,14 @@ func (o *options) ShouldFailFast() bool {
 //   - goose.OnValidationErrCallback: The validation error callback
 func (o *options) OnValidationErrCallback() goose.OnValidationErrCallback {
 	return o.onValidationErrCallback
+}
+
+// Resolver returns the resolver used for resolving URLs
+//
+// Returns:
+//   - Resolver: The URL resolver
+func (o *options) Resolver() resolver.Resolver {
+	return o.resolver
 }
 
 // Client sets the HTTP client to be used for making requests
@@ -228,6 +258,12 @@ func OnValidationErrCallback(OnValidationErrCallback goose.OnValidationErrCallba
 	}
 }
 
+func Resolvers(resolver resolver.Resolver) Option {
+	return func(o *options) {
+		o.resolver = resolver
+	}
+}
+
 // NewOptions creates a new Options instance with default values and applies the provided options
 //
 // Parameters:
@@ -236,16 +272,7 @@ func OnValidationErrCallback(OnValidationErrCallback goose.OnValidationErrCallba
 // Returns:
 //   - Options: A new Options instance with the applied options
 func NewOptions(opts ...Option) Options {
-	o := &options{
-		client:                  &http.Client{},
-		unmarshalOptions:        protojson.UnmarshalOptions{},
-		marshalOptions:          protojson.MarshalOptions{},
-		errorDecoder:            goose.DefaultDecodeError,
-		errorFactory:            goose.DefaultErrorFactory,
-		middlewares:             []Middleware{},
-		shouldFailFast:          false,
-		onValidationErrCallback: nil,
-	}
-	o = o.apply(opts...)
+	o := &options{}
+	o = o.Apply(opts...).Correct()
 	return o
 }

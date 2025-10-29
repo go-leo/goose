@@ -8,6 +8,7 @@ import (
 	errors "errors"
 	goose "github.com/go-leo/goose"
 	client "github.com/go-leo/goose/client"
+	resolver "github.com/go-leo/goose/client/resolver"
 	server "github.com/go-leo/goose/server"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	protojson "google.golang.org/protobuf/encoding/protojson"
@@ -118,6 +119,7 @@ func NewBoolQueryGooseClient(target string, opts ...client.Option) BoolQueryGoos
 		encoder: boolQueryGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: boolQueryGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -160,15 +162,16 @@ func (c *boolQueryGooseClient) BoolQuery(ctx context.Context, req *BoolQueryRequ
 }
 
 type boolQueryGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *boolQueryGooseRequestEncoder) BoolQuery(ctx context.Context, req *BoolQueryRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -316,6 +319,7 @@ func NewInt32QueryGooseClient(target string, opts ...client.Option) Int32QueryGo
 		encoder: int32QueryGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: int32QueryGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -358,15 +362,16 @@ func (c *int32QueryGooseClient) Int32Query(ctx context.Context, req *Int32QueryR
 }
 
 type int32QueryGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *int32QueryGooseRequestEncoder) Int32Query(ctx context.Context, req *Int32QueryRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -520,6 +525,7 @@ func NewInt64QueryGooseClient(target string, opts ...client.Option) Int64QueryGo
 		encoder: int64QueryGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: int64QueryGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -562,15 +568,16 @@ func (c *int64QueryGooseClient) Int64Query(ctx context.Context, req *Int64QueryR
 }
 
 type int64QueryGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *int64QueryGooseRequestEncoder) Int64Query(ctx context.Context, req *Int64QueryRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -721,6 +728,7 @@ func NewUint32QueryGooseClient(target string, opts ...client.Option) Uint32Query
 		encoder: uint32QueryGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: uint32QueryGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -763,15 +771,16 @@ func (c *uint32QueryGooseClient) Uint32Query(ctx context.Context, req *Uint32Que
 }
 
 type uint32QueryGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *uint32QueryGooseRequestEncoder) Uint32Query(ctx context.Context, req *Uint32QueryRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -919,6 +928,7 @@ func NewUint64QueryGooseClient(target string, opts ...client.Option) Uint64Query
 		encoder: uint64QueryGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: uint64QueryGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -961,15 +971,16 @@ func (c *uint64QueryGooseClient) Uint64Query(ctx context.Context, req *Uint64Que
 }
 
 type uint64QueryGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *uint64QueryGooseRequestEncoder) Uint64Query(ctx context.Context, req *Uint64QueryRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -1114,6 +1125,7 @@ func NewFloatQueryGooseClient(target string, opts ...client.Option) FloatQueryGo
 		encoder: floatQueryGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: floatQueryGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -1156,15 +1168,16 @@ func (c *floatQueryGooseClient) FloatQuery(ctx context.Context, req *FloatQueryR
 }
 
 type floatQueryGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *floatQueryGooseRequestEncoder) FloatQuery(ctx context.Context, req *FloatQueryRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -1306,6 +1319,7 @@ func NewDoubleQueryGooseClient(target string, opts ...client.Option) DoubleQuery
 		encoder: doubleQueryGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: doubleQueryGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -1348,15 +1362,16 @@ func (c *doubleQueryGooseClient) DoubleQuery(ctx context.Context, req *DoubleQue
 }
 
 type doubleQueryGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *doubleQueryGooseRequestEncoder) DoubleQuery(ctx context.Context, req *DoubleQueryRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -1498,6 +1513,7 @@ func NewStringQueryGooseClient(target string, opts ...client.Option) StringQuery
 		encoder: stringQueryGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: stringQueryGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -1540,15 +1556,16 @@ func (c *stringQueryGooseClient) StringQuery(ctx context.Context, req *StringQue
 }
 
 type stringQueryGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *stringQueryGooseRequestEncoder) StringQuery(ctx context.Context, req *StringQueryRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -1688,6 +1705,7 @@ func NewEnumQueryGooseClient(target string, opts ...client.Option) EnumQueryGoos
 		encoder: enumQueryGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: enumQueryGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -1730,15 +1748,16 @@ func (c *enumQueryGooseClient) EnumQuery(ctx context.Context, req *EnumQueryRequ
 }
 
 type enumQueryGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *enumQueryGooseRequestEncoder) EnumQuery(ctx context.Context, req *EnumQueryRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}

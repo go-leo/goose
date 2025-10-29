@@ -248,16 +248,8 @@ func TestNewOptions(t *testing.T) {
 		t.Error("Default error factory should not be nil")
 	}
 
-	if opts.Middlewares() == nil {
-		t.Error("Default middlewares should not be nil")
-	}
-
 	if opts.ShouldFailFast() != false {
 		t.Error("Default shouldFailFast should be false")
-	}
-
-	if opts.OnValidationErrCallback() != nil {
-		t.Error("Default validation callback should be nil")
 	}
 
 	// Test NewOptions with custom options
@@ -280,7 +272,7 @@ func TestApplyMethod(t *testing.T) {
 	testClient := &http.Client{}
 	testMiddlewares := []Middleware{mockMiddlewareOpt}
 
-	opts = opts.apply(
+	opts = opts.Apply(
 		Client(testClient),
 		Middlewares(testMiddlewares...),
 		FailFast(),

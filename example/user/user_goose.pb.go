@@ -8,6 +8,7 @@ import (
 	errors "errors"
 	goose "github.com/go-leo/goose"
 	client "github.com/go-leo/goose/client"
+	resolver "github.com/go-leo/goose/client/resolver"
 	server "github.com/go-leo/goose/server"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	http "net/http"
@@ -353,6 +354,7 @@ func NewUserGooseClient(target string, opts ...client.Option) UserGooseService {
 		encoder: userGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: userGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -490,15 +492,16 @@ func (c *userGooseClient) ListUser(ctx context.Context, req *ListUserRequest) (*
 }
 
 type userGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *userGooseRequestEncoder) CreateUser(ctx context.Context, req *CreateUserRequest) (*http.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -522,7 +525,7 @@ func (encoder *userGooseRequestEncoder) DeleteUser(ctx context.Context, req *Del
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -551,7 +554,7 @@ func (encoder *userGooseRequestEncoder) ModifyUser(ctx context.Context, req *Mod
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -583,7 +586,7 @@ func (encoder *userGooseRequestEncoder) UpdateUser(ctx context.Context, req *Upd
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -615,7 +618,7 @@ func (encoder *userGooseRequestEncoder) GetUser(ctx context.Context, req *GetUse
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -644,7 +647,7 @@ func (encoder *userGooseRequestEncoder) ListUser(ctx context.Context, req *ListU
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}

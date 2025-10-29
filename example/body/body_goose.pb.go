@@ -8,13 +8,13 @@ import (
 	errors "errors"
 	goose "github.com/go-leo/goose"
 	client "github.com/go-leo/goose/client"
+	resolver "github.com/go-leo/goose/client/resolver"
 	server "github.com/go-leo/goose/server"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	http "google.golang.org/genproto/googleapis/rpc/http"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	http1 "net/http"
-	url "net/url"
 )
 
 type BodyGooseService interface {
@@ -334,6 +334,7 @@ func NewBodyGooseClient(target string, opts ...client.Option) BodyGooseService {
 		encoder: bodyGooseRequestEncoder{
 			target:         target,
 			marshalOptions: options.MarshalOptions(),
+			resolver:       options.Resolver(),
 		},
 		decoder: bodyGooseResponseDecoder{
 			unmarshalOptions: options.UnmarshalOptions(),
@@ -471,15 +472,16 @@ func (c *bodyGooseClient) HttpRequest(ctx context.Context, req *http.HttpRequest
 }
 
 type bodyGooseRequestEncoder struct {
-	marshalOptions protojson.MarshalOptions
 	target         string
+	marshalOptions protojson.MarshalOptions
+	resolver       resolver.Resolver
 }
 
 func (encoder *bodyGooseRequestEncoder) StarBody(ctx context.Context, req *BodyRequest) (*http1.Request, error) {
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -503,7 +505,7 @@ func (encoder *bodyGooseRequestEncoder) NamedBody(ctx context.Context, req *Name
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -527,7 +529,7 @@ func (encoder *bodyGooseRequestEncoder) NonBody(ctx context.Context, req *emptyp
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -548,7 +550,7 @@ func (encoder *bodyGooseRequestEncoder) HttpBodyStarBody(ctx context.Context, re
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -572,7 +574,7 @@ func (encoder *bodyGooseRequestEncoder) HttpBodyNamedBody(ctx context.Context, r
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}
@@ -596,7 +598,7 @@ func (encoder *bodyGooseRequestEncoder) HttpRequest(ctx context.Context, req *ht
 	if req == nil {
 		return nil, errors.New("request is nil")
 	}
-	target, err := url.Parse(encoder.target)
+	target, err := resolver.Resolve(ctx, encoder.resolver, encoder.target)
 	if err != nil {
 		return nil, err
 	}

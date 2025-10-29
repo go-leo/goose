@@ -11,15 +11,16 @@ import (
 
 func (f *Generator) GenerateRequestEncoder(service *parser.Service, g *protogen.GeneratedFile) error {
 	g.P("type ", service.Unexported(service.RequestEncoderName()), " struct {")
-	g.P("marshalOptions ", constant.ProtoJsonMarshalOptionsIdent)
 	g.P("target string")
+	g.P("marshalOptions ", constant.ProtoJsonMarshalOptionsIdent)
+	g.P("resolver ", constant.ResolverIdent)
 	g.P("}")
 	for _, endpoint := range service.Endpoints {
 		g.P("func (encoder *", service.Unexported(service.RequestEncoderName()), ") ", endpoint.Name(), "(ctx ", constant.ContextIdent, ", req *", endpoint.InputGoIdent(), ") (*", constant.RequestIdent, ", error){")
 		g.P("if req == nil {")
 		g.P("return nil, ", constant.NewErrorIdent, "(", strconv.Quote("request is nil"), ")")
 		g.P("}")
-		g.P("target, err := ", constant.URLParseIndent, "(encoder.target)")
+		g.P("target, err := ", constant.ResolveIdent, "(ctx, encoder.resolver, encoder.target)")
 		g.P("if err != nil {")
 		g.P("return nil, err")
 		g.P("}")
@@ -102,7 +103,7 @@ func (f *Generator) PrintPathField(g *protogen.GeneratedFile, pathFields []*prot
 	}
 	g.P("}")
 	g.P("path = ", constant.URLPathIdent, "(path, pairs)")
-	g.P("path, err = url.JoinPath(target.Path, path)")
+	g.P("path, err = ", constant.JoinPathIndent, "(target.Path, path)")
 	g.P("if err != nil {")
 	g.P("return nil, err")
 	g.P("}")

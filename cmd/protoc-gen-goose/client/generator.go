@@ -16,6 +16,7 @@ func (f *Generator) GenerateNewClient(service *parser.Service, g *protogen.Gener
 	g.P("encoder: ", service.Unexported(service.RequestEncoderName()), "{")
 	g.P("target: target,")
 	g.P("marshalOptions: options.MarshalOptions(),")
+	g.P("resolver: options.Resolver(),")
 	g.P("},")
 	g.P("decoder: ", service.Unexported(service.ResponseDecoderName()), "{")
 	g.P("unmarshalOptions: options.UnmarshalOptions(),")

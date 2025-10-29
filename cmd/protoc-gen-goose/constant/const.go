@@ -19,6 +19,7 @@ var (
 	URLIndent       = UrlPackage.Ident("URL")
 	URLParseIndent  = UrlPackage.Ident("Parse")
 	URLValuesIndent = UrlPackage.Ident("Values")
+	JoinPathIndent  = UrlPackage.Ident("JoinPath")
 )
 
 var (
@@ -182,6 +183,13 @@ var (
 	ClientChainIdent      = GooseClientPackage.Ident("Chain")
 	ClientMiddlewareIdent = GooseClientPackage.Ident("Middleware")
 	ClientInvokeIdent     = GooseClientPackage.Ident("Invoke")
+)
+
+var (
+	GooseClientResolverPackage = protogen.GoImportPath("github.com/go-leo/goose/client/resolver")
+
+	ResolverIdent = GooseClientResolverPackage.Ident("Resolver")
+	ResolveIdent  = GooseClientResolverPackage.Ident("Resolve")
 )
 
 var (
