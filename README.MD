@@ -1,5 +1,6 @@
-# goose
-goose 通过定义 proto 文件，快速生成基于 Go 1.22 HTTP Router 的Restful服务路由和客户端代码。
+# Goose
+
+Goose 是一个面向 Go 的 Protobuf + HTTP/REST 代码生成与运行时支持库，包含用于生成客户端/服务器代码的 `protoc-gen-goose` 插件、服务端/客户端的编码解码器、以及一组常用中间件（访问日志、基本认证、JWT 验证、恢复、请求日志、超时等）。本仓库还包含示例 proto 文件、工具和测试用例，便于快速上手与二次开发。
 
 # 优点
 1. 基于proto文件，快速生成Restful服务路由和客户端
@@ -8,278 +9,106 @@ goose 通过定义 proto 文件，快速生成基于 Go 1.22 HTTP Router 的Rest
 4. 非反射取值，效率非常高
 5. 稳定，所有方法经过单元测试
 6. 代码简单，良好的代码设计，减少出错
+7. 基于Go1.22标准库Http路由语法
 
-# 安装
-```
+## 主要特性
+
+- protoc 插件：`cmd/protoc-gen-goose`，用于从 .proto 生成服务端/客户端样板代码。
+- 服务端/客户端编码器与解码器：位于 `server` 与 `client` 包，支持常见的请求/响应体映射。
+- 常用中间件：`middleware` 目录下包含访问日志、基本认证、JWT、恢复、请求日志、超时等实现，便于集成到生成的服务中。
+- 丰富的示例：`example` 目录包含多个基于 proto 的示例（body、path、query、response_body、user），包含生成后的 Go 文件与测试。
+- 辅助工具：验证、路径处理、pprof、格式化辅助等工具函数。
+
+## 目录概览
+
+- `cmd/protoc-gen-goose/`：protoc 插件源码（生成器、请求/响应模版等）。
+- `client/`：客户端相关的编码/解码与中间件选项。
+- `server/`：服务端相关的编码/解码与中间件选项。
+- `middleware/`：一组可复用的中间件实现（accesslog、basicauth、jwtauth、recovery、requestlog、timeout 等）。
+- `example/`：示例 proto 与生成的 Go 文件，演示如何使用插件和运行生成代码。
+- `internal/`、`tools/`：库内部工具与构建脚本。
+
+## 快速开始
+
+下面展示一个最小的使用流程：安装插件、用 protoc 生成代码、运行示例。
+
+### 安装（编译插件）
+
+推荐使用 go install 来安装插件（在支持 Go Modules 的环境下）：
+
+```bash
 go install github.com/go-leo/goose/cmd/protoc-gen-goose@latest
 ```
 
-# 路由规则
-goose 底层基于 [Go 1.22 HTTP Router](https://go.dev/blog/routing-enhancements) 管理http路由。
-## Google Http API Annotations
-[Google Http API Annotations](https://github.com/googleapis/googleapis/blob/master/google/api/annotations.proto)是google定义的可以在proto文件中使用的http路由规则注解。
+这会在 `$GOBIN` 或 `$GOPATH/bin` 下生成 `protoc-gen-goose` 可执行文件，protoc 能自动找到并使用它。
 
-# Example
-```protobuf
-syntax = "proto3";
-package leo.goose.example.user.v1;
-option go_package = "github.com/go-leo/goose/example/user/v1;user";
+> 也可以在仓库根目录下直接 `go build ./cmd/protoc-gen-goose`，得到本地可执行文件用于开发或调试。
 
-import "google/api/annotations.proto";
+### 生成代码
 
-service User {
+仓库内 `example/protoc.sh` 提供了示例生成命令。下面给出一个典型的 protoc 调用示例：
 
-  // CreateUser 创建用户
-  // `POST /v1/user { "name": "Leo" }` | `CreateUserRequest(name: "Leo")`
-  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {
-    option (google.api.http) = {
-      post : "/v1/user"
-      body : "*"
-    };
-  }
-
-  // DeleteUser 删除用户
-    // `DELETE /v1/user/10000 | `DeleteUserRequest(id: 10000)`
-  rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse) {
-    option (google.api.http) = {
-      delete : "/v1/user/{id}"
-    };
-  }
-
-  // ModifyUser 修改用户
-  // `PUT /v1/user/10000 { "name": "Leo" }` | `ModifyUserRequest(id: 10000, name: "Leo")`
-  rpc ModifyUser (ModifyUserRequest) returns (ModifyUserResponse) {
-    option (google.api.http) = {
-      put : "/v1/user/{id}"
-      body : "*"
-    };
-  }
-
-  // UpdateUser 更新用户
-  // `PUT /v1/user/10000 { "id": "99999" ,"name": "Leo" }` | `UpdateUserRequest(id: 10000, UserItem(id: 9999, name: "Leo"))`
-  rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {
-    option (google.api.http) = {
-      patch : "/v1/user/{id}"
-      body : "item"
-    };
-  }
-
-  // GetUser 获取用户
-  // `GET /v1/user/10000` | `GetUserRequest(id: 10000)`
-  rpc GetUser (GetUserRequest) returns (GetUserResponse) {
-    option (google.api.http) = {
-      get : "/v1/user/{id}"
-    };
-  }
-
-  // ListUser 获取用户列表
-  // `GET /v1/users?page_num=1&page_size=10` | `ListUserRequest(page_num: 1, page_size: 10)`
-  rpc ListUser (ListUserRequest) returns (ListUserResponse) {
-    option (google.api.http) = {
-      get : "/v1/users"
-    };
-  }
-}
-
-message UserItem {
-  int64 id = 1;
-  string name = 2;
-}
-
-message CreateUserRequest {
-  string name = 1;
-}
-
-message CreateUserResponse {
-  UserItem item = 1;
-}
-
-message DeleteUserRequest {
-  int64 id = 1;
-}
-
-message DeleteUserResponse {
-  int64 id = 1;
-}
-
-message ModifyUserRequest {
-  int64 id = 1;
-  string name = 2;
-}
-
-message ModifyUserResponse {
-    int64 id = 1;
-  string name = 2;
-}
-
-message UpdateUserRequest {
-  int64 id = 1;
-  UserItem item = 2;
-}
-
-message UpdateUserResponse {
-  int64 id = 1;
-  UserItem item = 2;
-}
-
-message GetUserRequest {
-  int64 id = 1;
-}
-
-message GetUserResponse {
-  UserItem item = 1;
-}
-
-message ListUserRequest {
-  int64 page_num = 1;
-  int64 page_size = 2;
-}
-
-message ListUserResponse {
-  int64 page_num = 1;
-  int64 page_size = 2;
-  repeated UserItem list = 3;
-}
-```
-## 1. CreateUser - 创建用户
-- **HTTP 方法**: POST
-- **路由路径**: `/v1/user`
-- **请求体**: 整个请求消息 (`body: "*"`)
-- **示例**:
-  ```
-  POST /v1/user
-  {
-    "name": "Leo"
-  }
-  ```
-
-## 2. DeleteUser - 删除用户
-- **HTTP 方法**: DELETE
-- **路由路径**: `/v1/user/{id}`
-- **路径参数**: `id` 字段从请求消息中提取
-- **示例**:
-  ```
-  DELETE /v1/user/10000
-  ```
-
-## 3. ModifyUser - 修改用户
-- **HTTP 方法**: PUT
-- **路由路径**: `/v1/user/{id}`
-- **路径参数**: `id` 字段从请求消息中提取
-- **请求体**: 整个请求消息 (`body: "*"`)
-- **示例**:
-  ```
-  PUT /v1/user/10000
-  {
-    "name": "Leo"
-  }
-  ```
-
-## 4. UpdateUser - 更新用户
-- **HTTP 方法**: PATCH
-- **路由路径**: `/v1/user/{id}`
-- **路径参数**: `id` 字段从请求消息中提取
-- **请求体**: 仅 `item` 字段 (`body: "item"`)
-- **示例**:
-  ```
-  PATCH /v1/user/10000
-  {
-    "item": {
-      "id": 9999,
-      "name": "Leo"
-    }
-  }
-  ```
-
-## 5. GetUser - 获取用户
-- **HTTP 方法**: GET
-- **路由路径**: `/v1/user/{id}`
-- **路径参数**: `id` 字段从请求消息中提取
-- **示例**:
-  ```
-  GET /v1/user/10000
-  ```
-
-## 6. ListUser - 获取用户列表
-- **HTTP 方法**: GET
-- **路由路径**: `/v1/users`
-- **查询参数**: `page_num` 和 `page_size` 字段会自动转换为查询参数
-- **示例**:
-  ```
-  GET /v1/users?page_num=1&page_size=10
-  ```
-
-# 生成路由
-执行命令
-```
-protoc \
---proto_path=. \
---proto_path=../third_party \
---proto_path=../../ \
---go_out=. \
---go_opt=paths=source_relative \
---goose_out=. \
---goose_opt=paths=source_relative \
-user/user.proto
-```
-生成一下文件
-```
-user
-├── user_goose.pb.go
-├── user_test.go
-├── user.pb.go
-└── user.proto
+```bash
+# 假设当前在 example 目录，且 protoc-gen-goose 在 PATH
+protoc --go_out=. --go-grpc_out=. --goose_out=. \
+  --proto_path=. your_service.proto
 ```
 
-# 实现UserService代码：
-```go
+生成后的文件通常包含：
+- Protobuf 消息类型的 Go 实现（由 `protoc-gen-go` 生成）
+- 基于 Goose 的服务端与客户端样板（由 `protoc-gen-goose` 生成）
 
-type MockUserService struct{}
+具体的插件选项和生成路径请参考 `cmd/protoc-gen-goose` 的源码与 `example/protoc.sh` 脚本。
 
-func (m *MockUserService) CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
-	return &CreateUserResponse{Item: &UserItem{Id: 1, Name: req.Name}}, nil
-}
+## 快速示例（运行生成的服务）
 
-func (m *MockUserService) DeleteUser(ctx context.Context, req *DeleteUserRequest) (*DeleteUserResponse, error) {
-	return &DeleteUserResponse{Id: req.GetId()}, nil
-}
+仓库的 `example` 目录包含多个示例服务。一般步骤：
 
-func (m *MockUserService) ModifyUser(ctx context.Context, req *ModifyUserRequest) (*ModifyUserResponse, error) {
-	return &ModifyUserResponse{Id: req.GetId(), Name: req.GetName()}, nil
-}
+1. 进入对应示例目录（例如 `example/body`）。
+2. 运行 `example/protoc.sh`（或手动执行 `protoc`）生成 Go 代码。
+3. 在生成后的代码中，使用生成的服务端构建器并挂载中间件（如需要），然后启动 HTTP 服务器。
+4. 使用生成的客户端（或 curl/postman）调用接口并查看响应。
 
-func (m *MockUserService) UpdateUser(ctx context.Context, req *UpdateUserRequest) (*UpdateUserResponse, error) {
-	return &UpdateUserResponse{Id: req.GetId(), Item: &UserItem{Id: req.GetItem().GetId(), Name: req.GetItem().GetName()}}, nil
-}
+示例中也包含对应的测试文件（`*_test.go`），可直接运行 `go test` 来查看行为。
 
-func (m *MockUserService) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
-	return &GetUserResponse{Item: &UserItem{Id: req.Id, Name: "test"}}, nil
-}
+## 中间件
 
-func (m *MockUserService) ListUser(ctx context.Context, req *ListUserRequest) (*ListUserResponse, error) {
-	return &ListUserResponse{
-		PageNum:  req.GetPageNum(),
-		PageSize: req.GetPageSize(),
-		List: []*UserItem{
-			{Id: 1, Name: "a"},
-			{Id: 2, Name: "b"},
-		},
-	}, nil
-}
+`middleware` 目录下包含若干实现：
+
+- `accesslog`：记录访问日志
+- `basicauth`：HTTP 基本认证
+- `jwtauth`：JWT 验证（示例与实现位于子模块中）
+- `recovery`：捕获 panic 并返回 5xx
+- `requestlog`：请求级别详细日志
+- `timeout`：请求超时控制
+
+这些中间件可以与生成的服务端代码组合使用，或在自定义的 HTTP/框架中复用。
+
+## 本地开发与测试
+
+- 运行所有包的测试：
+
+```bash
+go test ./...
 ```
 
-# 创建Server
-```go
-func main() {
-	router := http.NewServeMux()
-	router = AppendUserGooseRoute(router, &MockUserService{})
-	server := http.Server{Addr: ":8000", Handler: router}
-	server.ListenAndServe()
-}
-```
+- 在更改 `cmd/protoc-gen-goose` 后，重新编译并在 `example` 下运行 `protoc` 生成最新代码进行联调。
 
-更多示例见 [example]https://github.com/go-leo/goose/tree/example/user/server
+## 贡献
 
-# 子妹项目
-* [github.com/go-leo/gonic](https://github.com/go-leo/gonic) 使用 gin-gonic/gin 管理路由。
-* [github.com/go-leo/gorilla](https://github.com/go-leo/gorilla) 使用 gorilla/mux 管理路由。
+欢迎贡献：提交 issue、PR 或在 `cmd/protoc-gen-goose` 中添加更多生成选项与模板。贡献指南：
+
+1. Fork 仓库并在 feature 分支开发。
+2. 增加/更新测试以覆盖你的改动。
+3. 提交 PR，并在描述中说明变更目的与影响范围。
+
+## 相关链接与参考
+
+- `example/`：查看如何使用插件生成代码并运行示例。
+- `cmd/protoc-gen-goose`：插件实现，查看如何扩展生成模板。
+
+## 许可证
+
+本项目遵循仓库中的 LICENSE 文件（请参阅 `LICENSE`）。
+
+
