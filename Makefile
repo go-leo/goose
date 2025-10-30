@@ -1,4 +1,3 @@
-
 .PHONY: install
 install:
 	go install ./cmd/protoc-gen-goose
@@ -19,4 +18,5 @@ example:
 	--goose_opt=paths=source_relative \
 	example/*/*.proto
 
+.PHONY: all
 all: install example
