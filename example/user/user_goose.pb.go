@@ -385,7 +385,7 @@ func (c *userGooseClient) CreateUser(ctx context.Context, req *CreateUserRequest
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -404,7 +404,7 @@ func (c *userGooseClient) DeleteUser(ctx context.Context, req *DeleteUserRequest
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -423,7 +423,7 @@ func (c *userGooseClient) ModifyUser(ctx context.Context, req *ModifyUserRequest
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -442,7 +442,7 @@ func (c *userGooseClient) UpdateUser(ctx context.Context, req *UpdateUserRequest
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -461,7 +461,7 @@ func (c *userGooseClient) GetUser(ctx context.Context, req *GetUserRequest) (*Ge
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -480,7 +480,7 @@ func (c *userGooseClient) ListUser(ctx context.Context, req *ListUserRequest) (*
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}

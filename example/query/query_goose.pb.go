@@ -150,7 +150,7 @@ func (c *boolQueryGooseClient) BoolQuery(ctx context.Context, req *BoolQueryRequ
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -350,7 +350,7 @@ func (c *int32QueryGooseClient) Int32Query(ctx context.Context, req *Int32QueryR
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -556,7 +556,7 @@ func (c *int64QueryGooseClient) Int64Query(ctx context.Context, req *Int64QueryR
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -759,7 +759,7 @@ func (c *uint32QueryGooseClient) Uint32Query(ctx context.Context, req *Uint32Que
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -959,7 +959,7 @@ func (c *uint64QueryGooseClient) Uint64Query(ctx context.Context, req *Uint64Que
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -1156,7 +1156,7 @@ func (c *floatQueryGooseClient) FloatQuery(ctx context.Context, req *FloatQueryR
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -1350,7 +1350,7 @@ func (c *doubleQueryGooseClient) DoubleQuery(ctx context.Context, req *DoubleQue
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -1544,7 +1544,7 @@ func (c *stringQueryGooseClient) StringQuery(ctx context.Context, req *StringQue
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -1736,7 +1736,7 @@ func (c *enumQueryGooseClient) EnumQuery(ctx context.Context, req *EnumQueryRequ
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}

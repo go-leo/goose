@@ -1,11 +1,11 @@
 package recovery
 
 import (
+	"log/slog"
 	"net/http"
-	"runtime"
+	"runtime/debug"
 
 	"github.com/go-leo/goose/server"
-	"golang.org/x/exp/slog"
 )
 
 type options struct {
@@ -35,7 +35,7 @@ func RecoveryHandler(f HandlerFunc) Option {
 	}
 }
 
-func Middleware(opts ...Option) server.Middleware {
+func Server(opts ...Option) server.Middleware {
 	opt := defaultOptions().apply(opts...)
 	return func(response http.ResponseWriter, request *http.Request, invoker http.HandlerFunc) {
 		defer func() {
@@ -50,7 +50,5 @@ func Middleware(opts ...Option) server.Middleware {
 }
 
 func defaultHandler(response http.ResponseWriter, request *http.Request, p any) {
-	stack := make([]byte, 64<<10)
-	stack = stack[:runtime.Stack(stack, false)]
-	slog.ErrorContext(request.Context(), "panic caught", "panic", p, "stack", string(stack))
+	slog.ErrorContext(request.Context(), "panic caught", "panic", p, "stack", string(debug.Stack()))
 }

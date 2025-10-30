@@ -380,7 +380,7 @@ func (c *responseBodyGooseClient) OmittedResponse(ctx context.Context, req *Requ
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -399,7 +399,7 @@ func (c *responseBodyGooseClient) StarResponse(ctx context.Context, req *Request
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -418,7 +418,7 @@ func (c *responseBodyGooseClient) NamedResponse(ctx context.Context, req *Reques
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -437,7 +437,7 @@ func (c *responseBodyGooseClient) HttpBodyResponse(ctx context.Context, req *Req
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -456,7 +456,7 @@ func (c *responseBodyGooseClient) HttpBodyNamedResponse(ctx context.Context, req
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -475,7 +475,7 @@ func (c *responseBodyGooseClient) HttpResponse(ctx context.Context, req *Request
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}

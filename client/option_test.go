@@ -11,8 +11,8 @@ import (
 )
 
 // mockMiddlewareOpt is a test middleware for testing purposes
-func mockMiddlewareOpt(ctx context.Context, cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
-	return invoker(ctx, cli, request)
+func mockMiddlewareOpt( cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
+	return invoker( cli, request)
 }
 
 // mockErrorDecoder is a test error decoder for testing purposes

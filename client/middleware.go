@@ -1,29 +1,26 @@
 package client
 
 import (
-	"context"
 	"net/http"
 )
 
 // Invoker is a function type that defines how to invoke an HTTP request.
-// It takes a context, an HTTP client, and an HTTP request, and returns an HTTP response or an error.
+// It takes an HTTP client, and an HTTP request, and returns an HTTP response or an error.
 //
 // Parameters:
-//   - ctx: The context.Context for the request
 //   - cli: The HTTP client to use for the request
 //   - request: The HTTP request to invoke
 //
 // Returns:
 //   - *http.Response: The HTTP response from the request
 //   - error: Any error that occurred during the request, or nil if successful
-type Invoker func(ctx context.Context, cli *http.Client, request *http.Request) (*http.Response, error)
+type Invoker func(cli *http.Client, request *http.Request) (*http.Response, error)
 
 // Middleware is a function type that defines middleware for HTTP requests.
-// It takes a context, an HTTP client, an HTTP request, and the next invoker in the chain,
+// It takes an HTTP client, an HTTP request, and the next invoker in the chain,
 // and returns an HTTP response or an error.
 //
 // Parameters:
-//   - ctx: The context.Context for the request
 //   - cli: The HTTP client to use for the request
 //   - request: The HTTP request to process
 //   - invoker: The next invoker in the middleware chain
@@ -31,7 +28,7 @@ type Invoker func(ctx context.Context, cli *http.Client, request *http.Request) 
 // Returns:
 //   - *http.Response: The HTTP response from the request
 //   - error: Any error that occurred during the request, or nil if successful
-type Middleware func(ctx context.Context, cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error)
+type Middleware func(cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error)
 
 // Chain combines multiple middleware functions into a single middleware function.
 // It creates a chain where each middleware calls the next one in the sequence.
@@ -48,8 +45,8 @@ func Chain(middlewares ...Middleware) Middleware {
 	} else if len(middlewares) == 1 {
 		mdw = middlewares[0]
 	} else {
-		mdw = func(ctx context.Context, cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
-			return middlewares[0](ctx, cli, request, getInvoker(middlewares, 0, invoker))
+		mdw = func(cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
+			return middlewares[0](cli, request, getInvoker(middlewares, 0, invoker))
 		}
 	}
 	return mdw
@@ -69,8 +66,8 @@ func getInvoker(interceptors []Middleware, curr int, finalInvoker Invoker) Invok
 	if curr == len(interceptors)-1 {
 		return finalInvoker
 	}
-	return func(ctx context.Context, cli *http.Client, request *http.Request) (*http.Response, error) {
-		return interceptors[curr+1](ctx, cli, request, getInvoker(interceptors, curr+1, finalInvoker))
+	return func(cli *http.Client, request *http.Request) (*http.Response, error) {
+		return interceptors[curr+1](cli, request, getInvoker(interceptors, curr+1, finalInvoker))
 	}
 }
 
@@ -86,12 +83,12 @@ func getInvoker(interceptors []Middleware, curr int, finalInvoker Invoker) Invok
 // Returns:
 //   - *http.Response: The HTTP response from the request
 //   - error: Any error that occurred during the request, or nil if successful
-func Invoke(ctx context.Context, middleware Middleware, cli *http.Client, request *http.Request) (*http.Response, error) {
-	invoke := func(ctx context.Context, cli *http.Client, request *http.Request) (*http.Response, error) {
+func Invoke(middleware Middleware, cli *http.Client, request *http.Request) (*http.Response, error) {
+	invoke := func(cli *http.Client, request *http.Request) (*http.Response, error) {
 		return cli.Do(request)
 	}
 	if middleware == nil {
-		return invoke(ctx, cli, request)
+		return invoke(cli, request)
 	}
-	return middleware(ctx, cli, request, invoke)
+	return middleware(cli, request, invoke)
 }

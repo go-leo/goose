@@ -1,47 +1,106 @@
+// Package timeout provides server and client timeout middleware
 package timeout
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
-	"strings"
 	"time"
 
+	"github.com/go-leo/goose/client"
 	"github.com/go-leo/goose/server"
-	"golang.org/x/exp/slog"
 )
 
-const key = "X-Leo-Timeout"
+// Key is the HTTP header key used to pass timeout settings
+const Key = "X-Leo-Timeout"
 
-func Middleware(duration time.Duration) server.Middleware {
+// Server creates a server timeout middleware
+// Parameters:
+//   - duration: Default timeout duration
+//
+// Returns:
+//   - server.Middleware: Server middleware function
+//
+// Behavior:
+//  1. Checks for incoming timeout settings in request header
+//  2. Uses the smaller of incoming timeout and default timeout
+//  3. Creates context with timeout and invokes next handler
+func Server(duration time.Duration) server.Middleware {
 	return func(response http.ResponseWriter, request *http.Request, invoker http.HandlerFunc) {
+		// Set initial timeout to default value
 		timeout := duration
-		value := request.Header.Get(key)
-		if value != "" {
-			switch {
-			case strings.HasSuffix(value, "n"):
-				value = value + "s"
-			case strings.HasSuffix(value, "u"):
-				value = value + "s"
-			case strings.HasSuffix(value, "m"):
-				value = value + "s"
-			case strings.HasSuffix(value, "S"):
-				value = strings.Replace(value, "S", "s", 1)
-			case strings.HasSuffix(value, "M"):
-				value = strings.Replace(value, "M", "m", 1)
-			case strings.HasSuffix(value, "H"):
-				value = strings.Replace(value, "H", "h", 1)
-			}
+
+		// Check for custom timeout setting in request header
+		if value := request.Header.Get(Key); value != "" {
+			// Parse incoming timeout setting
 			incomingDuration, err := time.ParseDuration(value)
 			if err != nil {
+				// Log error but continue with default timeout if parsing fails
 				slog.Error("timeout parse error", slog.String("timeout", value), slog.String("error", err.Error()))
 			} else {
-				timeout = min(incomingDuration, duration)
+				// Use smaller timeout value if parsed successfully and greater than 0
+				if incomingDuration > 0 {
+					timeout = min(incomingDuration, timeout)
+				}
 			}
 		}
+
+		// Create context with timeout
 		ctx := request.Context()
 		ctx, cancel := context.WithTimeout(ctx, timeout)
-		defer cancel()
+		defer cancel() // Cancel context on function exit
+
+		// Associate new context with request
 		request = request.WithContext(ctx)
+
+		// Invoke next handler
 		invoker(response, request)
+	}
+}
+
+// Client creates a client timeout middleware
+// Parameters:
+//   - duration: Default timeout duration
+//
+// Returns:
+//   - client.Middleware: Client middleware function
+//
+// Behavior:
+//  1. Calculates timeout based on context deadline
+//  2. Sets timeout value in request header for server
+//  3. Creates context with timeout and invokes next handler
+func Client(duration time.Duration) client.Middleware {
+	return func(cli *http.Client, request *http.Request, invoker client.Invoker) (*http.Response, error) {
+		// Get context from request
+		ctx := request.Context()
+
+		// Set initial timeout to default value
+		outgoingDuration := duration
+
+		// Check if context has deadline set
+		deadline, ok := ctx.Deadline()
+		if ok {
+			// Calculate remaining time until deadline
+			timeout := time.Until(deadline)
+			if timeout <= 0 {
+				// Return deadline exceeded error if already timed out
+				return nil, context.DeadlineExceeded
+			}
+			// Use smaller timeout value
+			outgoingDuration = min(outgoingDuration, timeout)
+		}
+
+		// Set calculated timeout value in request header for server
+		request.Header.Set(Key, outgoingDuration.String())
+
+		// Create context with timeout
+		ctx, cancel := context.WithTimeout(ctx, outgoingDuration)
+		defer cancel() // Cancel context on function exit
+
+		// Associate new context with request
+		request = request.WithContext(ctx)
+
+		// Invoke next handler
+		return invoker(cli, request)
 	}
 }

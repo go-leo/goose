@@ -1,7 +1,6 @@
 package client
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -9,15 +8,15 @@ import (
 
 // mockMiddleware is a test middleware that adds a header to the request
 func mockMiddleware(headerKey, headerValue string) Middleware {
-	return func(ctx context.Context, cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
+	return func(cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
 		request.Header.Add(headerKey, headerValue)
-		return invoker(ctx, cli, request)
+		return invoker(cli, request)
 	}
 }
 
 // errorMiddleware is a test middleware that returns an error
 func errorMiddleware(errorMessage string) Middleware {
-	return func(ctx context.Context, cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
+	return func(cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
 		return nil, &testError{msg: errorMessage}
 	}
 }
@@ -80,7 +79,7 @@ func TestInvoke(t *testing.T) {
 	}
 
 	// Test with nil middleware
-	response, err := Invoke(context.Background(), nil, cli, request)
+	response, err := Invoke(nil, cli, request)
 	if err != nil {
 		t.Errorf("Invoke with nil middleware returned error: %v", err)
 	}
@@ -93,7 +92,7 @@ func TestInvoke(t *testing.T) {
 	key1 = true
 	key2 = false
 	mdw1 := mockMiddleware("Test-Key-1", "Test-Value-1")
-	response, err = Invoke(context.Background(), mdw1, cli, request)
+	response, err = Invoke(mdw1, cli, request)
 	if err != nil {
 		t.Errorf("Invoke with one middleware returned error: %v", err)
 	}
@@ -107,7 +106,7 @@ func TestInvoke(t *testing.T) {
 	key2 = true
 	mdw2 := mockMiddleware("Test-Key-2", "Test-Value-2")
 	chain := Chain(mdw1, mdw2)
-	response, err = Invoke(context.Background(), chain, cli, request)
+	response, err = Invoke(chain, cli, request)
 	if err != nil {
 		t.Errorf("Invoke with chained middleware returned error: %v", err)
 	}
@@ -118,7 +117,7 @@ func TestInvoke(t *testing.T) {
 
 	// Test with error middleware
 	errorMdw := errorMiddleware("test error")
-	response, err = Invoke(context.Background(), errorMdw, cli, request)
+	response, err = Invoke(errorMdw, cli, request)
 	if err == nil {
 		t.Error("Invoke with error middleware should return an error")
 	}
@@ -137,7 +136,7 @@ func TestGetInvoker(t *testing.T) {
 	middlewares := []Middleware{mdw1, mdw2, mdw3}
 
 	// Test getInvoker for middle middleware
-	invoker := getInvoker(middlewares, 0, func(ctx context.Context, cli *http.Client, request *http.Request) (*http.Response, error) {
+	invoker := getInvoker(middlewares, 0, func(cli *http.Client, request *http.Request) (*http.Response, error) {
 		return &http.Response{StatusCode: 200}, nil
 	})
 
@@ -146,7 +145,7 @@ func TestGetInvoker(t *testing.T) {
 	}
 
 	// Test that the invoker chain works correctly
-	response, err := invoker(context.Background(), &http.Client{}, &http.Request{Header: http.Header{}})
+	response, err := invoker(&http.Client{}, &http.Request{Header: http.Header{}})
 	if err != nil {
 		t.Errorf("Invoker chain returned error: %v", err)
 	}
@@ -167,19 +166,19 @@ func TestMiddlewareChainExecution(t *testing.T) {
 	defer server.Close()
 
 	// Create middlewares that record their execution order
-	mdw1 := func(ctx context.Context, cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
+	mdw1 := func(cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
 		executionOrder = append(executionOrder, 1)
-		return invoker(ctx, cli, request)
+		return invoker(cli, request)
 	}
 
-	mdw2 := func(ctx context.Context, cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
+	mdw2 := func(cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
 		executionOrder = append(executionOrder, 2)
-		return invoker(ctx, cli, request)
+		return invoker(cli, request)
 	}
 
-	mdw3 := func(ctx context.Context, cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
+	mdw3 := func(cli *http.Client, request *http.Request, invoker Invoker) (*http.Response, error) {
 		executionOrder = append(executionOrder, 3)
-		return invoker(ctx, cli, request)
+		return invoker(cli, request)
 	}
 
 	// Chain the middlewares
@@ -194,7 +193,7 @@ func TestMiddlewareChainExecution(t *testing.T) {
 
 	// Execute the request
 	executionOrder = []int{} // Reset execution order
-	_, err = Invoke(context.Background(), chain, cli, request)
+	_, err = Invoke(chain, cli, request)
 	if err != nil {
 		t.Errorf("Invoke returned error: %v", err)
 	}

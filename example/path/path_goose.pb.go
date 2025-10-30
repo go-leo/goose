@@ -148,7 +148,7 @@ func (c *boolPathGooseClient) BoolPath(ctx context.Context, req *BoolPathRequest
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -347,7 +347,7 @@ func (c *int32PathGooseClient) Int32Path(ctx context.Context, req *Int32PathRequ
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -550,7 +550,7 @@ func (c *int64PathGooseClient) Int64Path(ctx context.Context, req *Int64PathRequ
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -751,7 +751,7 @@ func (c *uint32PathGooseClient) Uint32Path(ctx context.Context, req *Uint32PathR
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -950,7 +950,7 @@ func (c *uint64PathGooseClient) Uint64Path(ctx context.Context, req *Uint64PathR
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -1147,7 +1147,7 @@ func (c *floatPathGooseClient) FloatPath(ctx context.Context, req *FloatPathRequ
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -1342,7 +1342,7 @@ func (c *doublePathGooseClient) DoublePath(ctx context.Context, req *DoublePathR
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -1538,7 +1538,7 @@ func (c *stringPathGooseClient) StringPath(ctx context.Context, req *StringPathR
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -1733,7 +1733,7 @@ func (c *enumPathGooseClient) EnumPath(ctx context.Context, req *EnumPathRequest
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Invoke(ctx, c.middleware, c.client, request)
+	response, err := client.Invoke(c.middleware, c.client, request)
 	if err != nil {
 		return nil, err
 	}

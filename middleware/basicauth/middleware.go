@@ -6,8 +6,10 @@ import (
 	"encoding/base64"
 	"errors"
 	"net/http"
+	"net/url"
 	"strconv"
 
+	"github.com/go-leo/goose/client"
 	"github.com/go-leo/goose/server"
 )
 
@@ -50,7 +52,7 @@ func Realm(realm string) Option {
 	}
 }
 
-func Middleware(accounts Accounts, opts ...Option) server.Middleware {
+func Server(accounts Accounts, opts ...Option) server.Middleware {
 	opt := defaultOptions().apply(opts...)
 	realm := "Basic realm=" + strconv.Quote(opt.realm)
 	pairs := processAccounts(accounts)
@@ -63,6 +65,13 @@ func Middleware(accounts Accounts, opts ...Option) server.Middleware {
 		}
 		request = request.WithContext(context.WithValue(request.Context(), ctxKey{}, user))
 		invoker(response, request)
+	}
+}
+
+func Client(account Account) client.Middleware {
+	return func(cli *http.Client, request *http.Request, invoker client.Invoker) (*http.Response, error) {
+		request.URL.User = url.UserPassword(account.User, account.Password)
+		return invoker(cli, request)
 	}
 }
 
