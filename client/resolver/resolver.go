@@ -22,7 +22,7 @@ func Resolve(ctx context.Context, resolver Resolver, targetStr string) (*url.URL
 	if err != nil {
 		return nil, err
 	}
-	if resolver != nil {
+	if resolver != nil && resolver.Scheme() == target.Scheme {
 		return resolver.Resolve(ctx, target)
 	}
 	if resolver, ok := registered.Load(target.Scheme); ok {
