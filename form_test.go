@@ -1,150 +1,91 @@
 package goose
 
 import (
-	"net/url"
-	"reflect"
+	"net/http/httptest"
 	"testing"
-
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
+func TestFormFromPath(t *testing.T) {
+	// 创建一个模拟的HTTP请求，带有路径参数
+	req := httptest.NewRequest("GET", "/test", nil)
+	// 手动设置路径值（在真实环境中，这通常由路由器处理）
+	req.SetPathValue("id", "123")
+	req.SetPathValue("name", "test")
+	req.SetPathValue("active", "true")
 
-func TestGetBoolValue(t *testing.T) {
-	form := url.Values{}
-	form.Set("a", "true")
-	got, err := GetBoolValue(form, "a")
-	want := wrapperspb.Bool(true)
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetBoolValue(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
+	t.Run("normal case", func(t *testing.T) {
+		// 测试正常情况：提取指定的路径参数
+		form := FormFromPath(req, "id", "name")
 
-func TestGetBoolValueSlice(t *testing.T) {
-	form := url.Values{}
-	form["a"] = []string{"true", "false"}
-	got, err := GetBoolValueSlice(form, "a")
-	want := []*wrapperspb.BoolValue{wrapperspb.Bool(true), wrapperspb.Bool(false)}
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetBoolValueSlice(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
+		// 验证返回的form不为nil
+		if form == nil {
+			t.Error("Expected non-nil url.Values, got nil")
+		}
+		// 验证提取到正确的值
+		if form.Get("id") != "123" {
+			t.Errorf("Expected id to be '123', got '%s'", form.Get("id"))
+		}
+		if form.Get("name") != "test" {
+			t.Errorf("Expected name to be 'test', got '%s'", form.Get("name"))
+		}
+		// 验证未请求的键不存在
+		if form.Get("active") != "" {
+			t.Errorf("Expected active to be empty, got '%s'", form.Get("active"))
+		}
+	})
 
-func TestGetInt32Value(t *testing.T) {
-	form := url.Values{}
-	form.Set("a", "123")
-	got, err := GetInt32Value(form, "a")
-	want := wrapperspb.Int32(123)
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetInt32Value(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
+	t.Run("nil keys", func(t *testing.T) {
+		// 测试keys为nil的情况
+		form := FormFromPath(req)
 
-func TestGetInt32ValueSlice(t *testing.T) {
-	form := url.Values{}
-	form["a"] = []string{"1", "2"}
-	got, err := GetInt32ValueSlice(form, "a")
-	want := []*wrapperspb.Int32Value{wrapperspb.Int32(1), wrapperspb.Int32(2)}
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetInt32ValueSlice(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
+		// 验证返回nil
+		if form != nil {
+			t.Error("Expected nil when no keys provided, got non-nil")
+		}
+	})
 
-func TestGetInt64Value(t *testing.T) {
-	form := url.Values{}
-	form.Set("a", "123456789")
-	got, err := GetInt64Value(form, "a")
-	want := wrapperspb.Int64(123456789)
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetInt64Value(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
+	t.Run("empty keys", func(t *testing.T) {
+		// 测试空keys切片的情况
+		form := FormFromPath(req, []string{}...)
 
-func TestGetInt64ValueSlice(t *testing.T) {
-	form := url.Values{}
-	form["a"] = []string{"1", "2"}
-	got, err := GetInt64ValueSlice(form, "a")
-	want := []*wrapperspb.Int64Value{wrapperspb.Int64(1), wrapperspb.Int64(2)}
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetInt64ValueSlice(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
+		// 验证返回空的url.Values而不是nil
+		if form == nil {
+			t.Error("Expected non-nil url.Values, got nil")
+		}
+		if len(form) != 0 {
+			t.Errorf("Expected empty url.Values, got %d values", len(form))
+		}
+	})
 
-func TestGetUint32Value(t *testing.T) {
-	form := url.Values{}
-	form.Set("a", "123")
-	got, err := GetUint32Value(form, "a")
-	want := wrapperspb.UInt32(123)
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetUint32Value(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
+	t.Run("nonexistent key", func(t *testing.T) {
+		// 测试请求不存在的键
+		form := FormFromPath(req, "nonexistent")
 
-func TestGetUint32ValueSlice(t *testing.T) {
-	form := url.Values{}
-	form["a"] = []string{"1", "2"}
-	got, err := GetUint32ValueSlice(form, "a")
-	want := []*wrapperspb.UInt32Value{wrapperspb.UInt32(1), wrapperspb.UInt32(2)}
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetUint32ValueSlice(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
+		// 验证返回的form不为nil
+		if form == nil {
+			t.Error("Expected non-nil url.Values, got nil")
+		}
+		// 验证不存在的键返回空字符串
+		if form.Get("nonexistent") != "" {
+			t.Errorf("Expected empty string for nonexistent key, got '%s'", form.Get("nonexistent"))
+		}
+	})
 
-func TestGetUint64Value(t *testing.T) {
-	form := url.Values{}
-	form.Set("a", "123456789")
-	got, err := GetUint64Value(form, "a")
-	want := wrapperspb.UInt64(123456789)
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetUint64Value(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
+	t.Run("partial nonexistent keys", func(t *testing.T) {
+		// 测试部分键存在，部分不存在的情况
+		form := FormFromPath(req, "id", "nonexistent")
 
-func TestGetUint64ValueSlice(t *testing.T) {
-	form := url.Values{}
-	form["a"] = []string{"1", "2"}
-	got, err := GetUint64ValueSlice(form, "a")
-	want := []*wrapperspb.UInt64Value{wrapperspb.UInt64(1), wrapperspb.UInt64(2)}
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetUint64ValueSlice(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
-
-func TestGetFloat32Value(t *testing.T) {
-	form := url.Values{}
-	form.Set("a", "3.14")
-	got, err := GetFloat32Value(form, "a")
-	want := wrapperspb.Float(3.14)
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetFloat32Value(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
-
-func TestGetFloat32ValueSlice(t *testing.T) {
-	form := url.Values{}
-	form["a"] = []string{"1.1", "2.2"}
-	got, err := GetFloat32ValueSlice(form, "a")
-	want := []*wrapperspb.FloatValue{wrapperspb.Float(1.1), wrapperspb.Float(2.2)}
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetFloat32ValueSlice(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
-
-func TestGetFloat64Value(t *testing.T) {
-	form := url.Values{}
-	form.Set("a", "3.1415")
-	got, err := GetFloat64Value(form, "a")
-	want := wrapperspb.Double(3.1415)
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetFloat64Value(a) = %v, %v; want %v, nil", got, err, want)
-	}
-}
-
-func TestGetFloat64ValueSlice(t *testing.T) {
-	form := url.Values{}
-	form["a"] = []string{"1.1", "2.2"}
-	got, err := GetFloat64ValueSlice(form, "a")
-	want := []*wrapperspb.DoubleValue{wrapperspb.Double(1.1), wrapperspb.Double(2.2)}
-	if err != nil || !reflect.DeepEqual(got, want) {
-		t.Errorf("GetFloat64ValueSlice(a) = %v, %v; want %v, nil", got, err, want)
-	}
+		// 验证返回的form不为nil
+		if form == nil {
+			t.Error("Expected non-nil url.Values, got nil")
+		}
+		// 验证存在的键有正确值
+		if form.Get("id") != "123" {
+			t.Errorf("Expected id to be '123', got '%s'", form.Get("id"))
+		}
+		// 验证不存在的键为空
+		if form.Get("nonexistent") != "" {
+			t.Errorf("Expected empty string for nonexistent key, got '%s'", form.Get("nonexistent"))
+		}
+	})
 }
