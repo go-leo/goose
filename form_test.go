@@ -1,9 +1,78 @@
 package goose
 
 import (
+	"errors"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
+
+func TestGetForm(t *testing.T) {
+	form := url.Values{}
+	form.Set("a", "1")
+	getter := func(f url.Values, key string) (int, error) {
+		return 42, nil
+	}
+	v, err := GetForm(nil, form, "a", getter)
+	if err != nil || v != 42 {
+		t.Errorf("GetForm = %v, %v; want 42, nil", v, err)
+	}
+
+	preErr := errors.New("fail")
+	v, err = GetForm(preErr, form, "a", getter)
+	if err != preErr {
+		t.Errorf("GetForm with pre error = %v, %v; want pre error", v, err)
+	}
+}
+
+func TestGetForm_GenericType(t *testing.T) {
+	form := url.Values{}
+	form.Set("foo", "bar")
+	getter := func(f url.Values, key string) (string, error) {
+		return f.Get(key), nil
+	}
+	v, err := GetForm(nil, form, "foo", getter)
+	if err != nil || v != "bar" {
+		t.Errorf("GetForm generic = %v, %v; want bar, nil", v, err)
+	}
+}
+
+func TestGetForm_ErrorPropagation(t *testing.T) {
+	form := url.Values{}
+	getter := func(f url.Values, key string) (string, error) {
+		return "", errors.New("fail")
+	}
+	v, err := GetForm(nil, form, "foo", getter)
+	if err == nil {
+		t.Errorf("GetForm should propagate error")
+	}
+	if v != "" {
+		t.Errorf("GetForm should return zero value on error")
+	}
+}
+
+func TestGetForm_NilForm(t *testing.T) {
+	getter := func(f url.Values, key string) (string, error) {
+		if f == nil {
+			return "ok", nil
+		}
+		return "", nil
+	}
+	v, err := GetForm(nil, nil, "foo", getter)
+	if err != nil || v != "ok" {
+		t.Errorf("GetForm nil form = %v, %v; want ok, nil", v, err)
+	}
+}
+
+func TestFormGetter_Type(t *testing.T) {
+	var _ FormGetter[int]
+	var _ FormGetter[string]
+}
+
+func TestBreak_Type(t *testing.T) {
+	_ = BreakOnError[int]
+	_ = BreakOnError[string]
+}
 
 func TestFormFromPath(t *testing.T) {
 	// 创建一个模拟的HTTP请求，带有路径参数
