@@ -28,12 +28,12 @@ type Options interface {
 
 // options holds the configuration options for the server
 type options struct {
-	unmarshalOptions        protojson.UnmarshalOptions       // Options for unmarshaling protobuf messages
-	marshalOptions          protojson.MarshalOptions         // Options for marshaling protobuf messages
-	errorEncoder            goose.ErrorEncoder               // Encoder for error responses
-	middlewares             []Middleware                     // Middlewares applied to requests
-	shouldFailFast          bool                             // Flag indicating if fail-fast mode is enabled
-	onValidationErrCallback goose.OnValidationErrCallback    // Callback for validation errors
+	unmarshalOptions        protojson.UnmarshalOptions    // Options for unmarshaling protobuf messages
+	marshalOptions          protojson.MarshalOptions      // Options for marshaling protobuf messages
+	errorEncoder            goose.ErrorEncoder            // Encoder for error responses
+	middlewares             []Middleware                  // Middlewares applied to requests
+	shouldFailFast          bool                          // Flag indicating if fail-fast mode is enabled
+	onValidationErrCallback goose.OnValidationErrCallback // Callback for validation errors
 }
 
 // Option defines a function type for modifying server options
